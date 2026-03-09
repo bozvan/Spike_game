@@ -1,13 +1,12 @@
 #include <SFML/Graphics.hpp>
-#include "SimpleButton.h"
-#include <locale>
+#include "Hedgehog.h"
 
 int main() {
     setlocale(LC_ALL, "rus");
     sf::RenderWindow window(sf::VideoMode({800, 600}), "Simple button");
-    window.setFramerateLimit(60);
+    window.setFramerateLimit(120);
 
-    SimpleButton button(sf::Vector2f(300, 250), sf::Vector2f(200, 80), sf::Color(100, 100, 250));
+    Hedgehog button(sf::Vector2f(300, 250), sf::Vector2f(100, 100), sf::Color(100, 100, 250));
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
