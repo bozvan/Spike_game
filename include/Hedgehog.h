@@ -14,6 +14,8 @@ class Hedgehog {
 private:
     sf::RectangleShape shape;
     sf::Vector2f movement;
+    sf::Texture texture;
+    sf::Sprite sprite;
     bool isPressed;
     bool jumping;
 
@@ -24,7 +26,7 @@ private:
     float stopFallingPosition;
 
 public:
-    Hedgehog(sf::Vector2f position, sf::Vector2f size, sf::Color color);
+    Hedgehog(sf::Vector2f position, sf::Color color, std::string &texturePath);
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
     void stop_falling(float y);
     void set_position(const sf::Vector2f& pos);
@@ -32,6 +34,9 @@ public:
     void jump(Direction direction);
     void update(sf::Time &deltaTime);
     bool wasClicked() const;
+
+    sf::Sprite& getSprite();
+    const sf::Sprite& getSprite() const;
 };
 
 #endif
