@@ -7,6 +7,9 @@ Hedgehog::Hedgehog(sf::Vector2f position, sf::Vector2f size, sf::Color color)
     shape.setPosition(position);
     shape.setSize(size);
     shape.setFillColor(color);
+
+    movement.x = 0.f;
+    movement.y = 0.f;
 }
 
 void Hedgehog::handleEvent(const sf::Event& event, const sf::RenderWindow& window)
@@ -19,29 +22,36 @@ void Hedgehog::handleEvent(const sf::Event& event, const sf::RenderWindow& windo
             if (shape.getGlobalBounds().contains(mousePos))
             {
                 isPressed = true;
-                std::cout << "Кнопка нажата!" << std::endl;
+                std::cout << "Button is pressed!" << std::endl;
             }
         }
-    }
-    if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
-    {
-        sf::Vector2f newPos = shape.getPosition();
-        const float speed = 10;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
-            newPos.y -= speed;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-            newPos.x -= speed;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-            newPos.x += speed;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
-            newPos.y += speed;
-        shape.setPosition(newPos);
     }
 }
 
 void Hedgehog::draw(sf::RenderWindow& window)
 {
     window.draw(shape);
+}
+
+void Hedgehog::update(sf::Time &deltaTime)
+{
+    movement.x = 0.f;
+    movement.y = 0.f;
+    const float speed = 200.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
+        movement.y -= speed;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
+        movement.x -= speed;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
+        movement.x += speed;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
+        movement.y += speed;
+
+    float length = std::sqrt(movement.x * movement.x + movement.y * movement.y);
+    if (length != 0)
+        movement /= length;
+
+    shape.move(movement * speed * deltaTime.asSeconds());
 }
 
 bool Hedgehog::wasClicked() const
