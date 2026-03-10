@@ -18,6 +18,8 @@ private:
     sf::Sprite sprite;
     bool isPressed;
     bool jumping;
+    bool running;
+    short state;
 
     float jump_force;
     float gravity;
@@ -32,6 +34,7 @@ public:
     void set_position(const sf::Vector2f& pos);
     void draw(sf::RenderWindow& window);
     void jump(Direction direction);
+    void run();
     void update(sf::Time &deltaTime);
     bool wasClicked() const;
 

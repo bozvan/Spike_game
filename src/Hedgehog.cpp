@@ -5,7 +5,7 @@
 
 Hedgehog::Hedgehog(sf::Vector2f position, sf::Color color, std::string &texturePath)
     : texture(), sprite(texture), isPressed(false),
-      jumping(0), jump_force(250), gravity(1000), speed(0, 0), speedRun(200.f)
+    jumping(0), jump_force(250), gravity(1000), speed(0, 0), speedRun(400.f), state(0)
 {
     if (!texture.loadFromFile(texturePath))
     {
@@ -14,8 +14,8 @@ Hedgehog::Hedgehog(sf::Vector2f position, sf::Color color, std::string &textureP
         shape.setFillColor(color);
     };
 
-    int frameWidth = texture.getSize().x;  // two frames
-    int frameHeight = texture.getSize().y/2;
+    int frameWidth = texture.getSize().x;
+    int frameHeight = texture.getSize().y/2; // two frames
 
     //sprite.setSize(sf::Vector2f(frameWidth, frameHeight));
     sprite.setPosition(position);
@@ -94,10 +94,39 @@ void Hedgehog::set_position(const sf::Vector2f& pos)
     sprite.setPosition(pos);
 }
 
+void Hedgehog::run()
+{
+    running = true;
+    //std::cout << "change pic! state = " << state << "\n";
+    int frameWidth = texture.getSize().x;
+    int frameHeight = texture.getSize().y/2;
+    int frameY = frameHeight;
+    int newFrameHeight = texture.getSize().y;
+
+    state = (state + 1) % 2; // 2 frames
+    switch (state)
+    {
+    case 0:  sprite.setTextureRect(sf::IntRect({0, frameY}, {frameWidth, newFrameHeight})); break;
+    case 1:  sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); break;
+    }
+
+
+}
+
 void Hedgehog::update(sf::Time &deltaTime)
 {
     movement.x = 0.f;
     movement.y = 0.f;
+
+    int frameWidth = texture.getSize().x;
+    int frameHeight = texture.getSize().y/2; // two frames
+
+    running = false;
+    if (!running)
+    {
+        //std::cout << "stop pic \n";
+        sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight}));
+    }
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) &&
         sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
@@ -125,12 +154,14 @@ void Hedgehog::update(sf::Time &deltaTime)
         //sprite.setOrigin({sprite.getLocalBounds().getCenter().x, 0});
         sprite.setScale({1, 1});
         movement.x -= speedRun;
+        run();
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
         //sprite.setOrigin({sprite.getLocalBounds().getCenter().x, 0});
         sprite.setScale({-1, 1});
         movement.x += speedRun;
+        run();
     }
 
 

@@ -12,7 +12,7 @@ int main() {
     std::string hedgehogTexturePath = "assets/textures/Hedgehog.png";
     sf::Clock clock;
     sf::RenderWindow window(sf::VideoMode({800, 600}), "Simple button");
-    window.setFramerateLimit(120);
+    window.setFramerateLimit(60);
 
 
     fs::path p = hedgehogTexturePath;
