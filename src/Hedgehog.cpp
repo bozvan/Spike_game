@@ -43,11 +43,14 @@ void Hedgehog::stop_falling(float y)
         speed.y = 0;
         shape.setPosition({shape.getPosition().x, y});
     }
+    std::cout << "current position y = " << shape.getPosition().y << "\n";
 }
 
 void Hedgehog::jump(Direction direction=Direction::DEFAULT)
 {
     bool falling = false;
+
+    std::cout << "stopFallingPosition = " << stopFallingPosition << "\n";
     if (!jumping)
     {
         speed.x = 0;
@@ -60,7 +63,10 @@ void Hedgehog::jump(Direction direction=Direction::DEFAULT)
             speed.x += speedRun;
         }
         if (!falling)
+        {
+            stopFallingPosition = shape.getPosition().y;
             speed.y = -jump_force;
+        }
         jumping = true;
     }
 }
@@ -88,8 +94,8 @@ void Hedgehog::update(sf::Time &deltaTime)
     else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space))
         jump();
 
-    if (shape.getPosition().y > 400)
-        stop_falling(400);
+    if (shape.getPosition().y > stopFallingPosition)
+        stop_falling(stopFallingPosition);
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
         movement.y -= speedRun;

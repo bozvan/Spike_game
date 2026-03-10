@@ -21,6 +21,7 @@ private:
     float gravity;
     sf::Vector2f speed;
     float speedRun;
+    float stopFallingPosition;
 
 public:
     Hedgehog(sf::Vector2f position, sf::Vector2f size, sf::Color color);
