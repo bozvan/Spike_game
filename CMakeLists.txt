@@ -3,7 +3,6 @@ project(Spike_game)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64")
 
 set(SFML_DIR "C:/Users/ivanb/Downloads/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2")
 set(SFML_INCLUDE_DIR "${SFML_DIR}/include")
@@ -20,12 +19,14 @@ target_include_directories(Spike_game PRIVATE
 )
 
 target_link_directories(Spike_game PRIVATE ${SFML_LIB_DIR})
-
-target_link_libraries(Spike_game
-    ${SFML_LIB_DIR}/libsfml-graphics.a
-    ${SFML_LIB_DIR}/libsfml-window.a
-    ${SFML_LIB_DIR}/libsfml-system.a
+target_link_libraries(Spike_game PRIVATE
+    sfml-graphics
+    sfml-window
+    sfml-system
 )
+
+# ---------- Копирование DLL ----------
+get_filename_component(MINGW_BIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
 
 add_custom_command(TARGET Spike_game POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -36,6 +37,16 @@ add_custom_command(TARGET Spike_game POST_BUILD
         "$<TARGET_FILE_DIR:Spike_game>"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${SFML_BIN_DIR}/sfml-system-3.dll"
+        "$<TARGET_FILE_DIR:Spike_game>"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+        "$<TARGET_FILE_DIR:Spike_game>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${MINGW_BIN_DIR}/libstdc++-6.dll"
+        "$<TARGET_FILE_DIR:Spike_game>"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${MINGW_BIN_DIR}/libwinpthread-1.dll"
         "$<TARGET_FILE_DIR:Spike_game>"
 )
 
