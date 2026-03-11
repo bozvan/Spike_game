@@ -2,17 +2,11 @@
 #define HEDGEHOG_H
 
 #include <SFML/Graphics.hpp>
-
-enum Direction
-{
-    LEFT,
-    RIGHT,
-    DEFAULT
-};
+#include "Direction.h"
+#include "Projectile.h"
 
 class Hedgehog {
 private:
-    sf::RectangleShape shape;
     sf::Vector2f movement;
     sf::Texture texture;
     sf::Sprite sprite;
@@ -27,19 +21,23 @@ private:
     float speedRun;
     float stopFallingPosition;
 
+    sf::Clock shootCooldown;
+    const float shootInterval = 0.3f;
+
 public:
-    Hedgehog(sf::Vector2f position, sf::Color color, std::string &texturePath);
+    Hedgehog(sf::Vector2f position, std::string &texturePath);
     void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
     void stop_falling(float y);
     void set_position(const sf::Vector2f& pos);
     void draw(sf::RenderWindow& window);
     void jump(Direction direction);
     void run();
-    void update(sf::Time &deltaTime);
+    void shoot(std::vector<Projectile> &projectiles);
+    void update(sf::Time &deltaTime, std::vector<Projectile> &projectiles);
     bool wasClicked() const;
 
     sf::Sprite& getSprite();
     const sf::Sprite& getSprite() const;
 };
 
-#endif
+#endif // HEDGEHOG_H

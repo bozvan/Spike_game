@@ -1,9 +1,10 @@
 #include "Hedgehog.h"
+#include "Projectile.h"
 #include <iostream>
 #include <string>
 #include <cmath>
 
-Hedgehog::Hedgehog(sf::Vector2f position, sf::Color color, std::string &texturePath)
+Hedgehog::Hedgehog(sf::Vector2f position, std::string &texturePath)
     : texture(), sprite(texture), isPressed(false),
     jumping(0), jump_force(250), gravity(1000), speed(0, 0), speedRun(400.f), state(0)
 {
@@ -11,13 +12,11 @@ Hedgehog::Hedgehog(sf::Vector2f position, sf::Color color, std::string &textureP
     {
         std::cout << "Texture Hedgehog is not found!\n";
         std::cout << "Hedgehog Path is " << texturePath << "\n";
-        shape.setFillColor(color);
     };
 
     int frameWidth = texture.getSize().x;
     int frameHeight = texture.getSize().y/2; // two frames
 
-    //sprite.setSize(sf::Vector2f(frameWidth, frameHeight));
     sprite.setPosition(position);
     sprite.setTexture(texture);
 
@@ -61,14 +60,11 @@ void Hedgehog::stop_falling(float y)
         speed.y = 0;
         sprite.setPosition({sprite.getPosition().x, y});
     }
-    //std::cout << "current position y = " << shape.getPosition().y << "\n";
 }
 
 void Hedgehog::jump(Direction direction=Direction::DEFAULT)
 {
     bool falling = false;
-
-    //std::cout << "stopFallingPosition = " << stopFallingPosition << "\n";
     if (!jumping)
     {
         speed.x = 0;
@@ -97,7 +93,6 @@ void Hedgehog::set_position(const sf::Vector2f& pos)
 void Hedgehog::run()
 {
     running = true;
-    //std::cout << "change pic! state = " << state << "\n";
     int frameWidth = texture.getSize().x;
     int frameHeight = texture.getSize().y/2;
     int frameY = frameHeight;
@@ -106,14 +101,22 @@ void Hedgehog::run()
     state = (state + 1) % 2; // 2 frames
     switch (state)
     {
-    case 0:  sprite.setTextureRect(sf::IntRect({0, frameY}, {frameWidth, newFrameHeight})); break;
-    case 1:  sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); break;
+        case 0:  sprite.setTextureRect(sf::IntRect({0, frameY}, {frameWidth, newFrameHeight})); break;
+        case 1:  sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight})); break;
     }
-
-
 }
 
-void Hedgehog::update(sf::Time &deltaTime)
+void Hedgehog::shoot(std::vector<Projectile> &projectiles)
+{
+    float startX = sprite.getPosition().x;
+    float startY = sprite.getPosition().y;
+    float direction = (sprite.getScale().x > 0) ? -1.f : 1.f;
+
+    Projectile p({startX, startY}, direction);
+    projectiles.push_back(p);
+}
+
+void Hedgehog::update(sf::Time &deltaTime, std::vector<Projectile> &projectiles)
 {
     movement.x = 0.f;
     movement.y = 0.f;
@@ -124,7 +127,6 @@ void Hedgehog::update(sf::Time &deltaTime)
     running = false;
     if (!running)
     {
-        //std::cout << "stop pic \n";
         sprite.setTextureRect(sf::IntRect({0, 0}, {frameWidth, frameHeight}));
     }
 
@@ -151,19 +153,26 @@ void Hedgehog::update(sf::Time &deltaTime)
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
-        //sprite.setOrigin({sprite.getLocalBounds().getCenter().x, 0});
         sprite.setScale({1, 1});
         movement.x -= speedRun;
         run();
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
-        //sprite.setOrigin({sprite.getLocalBounds().getCenter().x, 0});
         sprite.setScale({-1, 1});
         movement.x += speedRun;
         run();
     }
 
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) && shootCooldown.getElapsedTime().asSeconds() > shootInterval)
+    {
+        shoot(projectiles);
+        shootCooldown.restart();
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::K))
+    {
+        std::cout << "projectiles.size() = " << projectiles.size() << "\n";
+    }
 
     float length = sqrt(movement.x * movement.x + movement.y * movement.y);
     if (length != 0)
