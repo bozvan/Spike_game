@@ -2,42 +2,83 @@
 #define HEDGEHOG_H
 
 #include <SFML/Graphics.hpp>
-#include "Direction.h"
-#include "Projectile.h"
+#include <vector>
+#include <string>
 
-class Hedgehog {
+class Projectile;
+
+enum class Direction
+{
+    LEFT,
+    RIGHT,
+    DEFAULT
+};
+
+class Hedgehog
+{
 private:
-    sf::Vector2f movement;
+
     sf::Texture texture;
     sf::Sprite sprite;
+
+    sf::Image image;
+    std::vector<std::vector<bool>> alphaMask;
+
     bool isPressed;
-    bool jumping;
     bool running;
-    short state;
+    bool jumping;
+    bool onGround;
 
     float jump_force;
     float gravity;
+
     sf::Vector2f speed;
+    sf::Vector2f movement;
+
     float speedRun;
-    float stopFallingPosition;
+
+    int state;
 
     sf::Clock shootCooldown;
-    const float shootInterval = 0.3f;
+    float shootInterval;
 
 public:
-    Hedgehog(sf::Vector2f position, std::string &texturePath);
-    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
-    void stop_falling(float y);
-    void set_position(const sf::Vector2f& pos);
-    void draw(sf::RenderWindow& window);
-    void jump(Direction direction);
-    void run();
-    void shoot(std::vector<Projectile> &projectiles);
-    void update(sf::Time &deltaTime, std::vector<Projectile> &projectiles);
-    bool wasClicked() const;
+
+    Hedgehog(sf::Vector2f position, std::string& texturePath);
 
     sf::Sprite& getSprite();
     const sf::Sprite& getSprite() const;
+
+    void handleEvent(const sf::Event& event, const sf::RenderWindow& window);
+    void draw(sf::RenderWindow& window);
+
+    void update(sf::Time& deltaTime,
+                std::vector<Projectile>& projectiles,
+                sf::Sprite& otherSprite,
+                const std::vector<std::vector<bool>>& otherMask);
+
+    void jump(Direction direction = Direction::DEFAULT);
+    void run();
+    void shoot(std::vector<Projectile>& projectiles);
+
+    void set_position(const sf::Vector2f& pos);
+
+    bool isCollision(sf::Sprite& otherSprite) const;
+    void resolveCollision(sf::Sprite& otherSprite,
+                          const std::vector<std::vector<bool>>& otherMask);
+    void resolveHorizontalCollision(sf::Sprite& otherSprite,
+                                    const std::vector<std::vector<bool>>& otherMask,
+                                    float oldX);
+    void resolveVerticalCollision(sf::Sprite& otherSprite,
+                                  const std::vector<std::vector<bool>>& otherMask,
+                                  float oldY);
+
+    bool pixelPerfectCollision(sf::Sprite& otherSprite,
+                               const std::vector<std::vector<bool>>& otherMask);
+
+    bool wasClicked() const;
+
+    void createAlphaMask();
 };
 
-#endif // HEDGEHOG_H
+#endif

@@ -11,7 +11,7 @@ Projectile::Projectile(sf::Vector2f position, float directionX) :
 {
     static bool loaded = false;
     if (!loaded) {
-        if (!texture.loadFromFile("assets/textures/bullet-mushroom.png")) {
+        if (!texture.loadFromFile("assets/textures/bullet-mushroom-red.png")) {
             std::cout << "Failed to load bullet texture!\n";
         } else {
             std::cout << "Bullet texture loaded successfully.\n";
