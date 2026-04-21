@@ -78,7 +78,7 @@ private:
     bool m_jumpRequested{};
     bool m_facingLeft{};
 
-    float m_jumpForce{430.f};
+    float m_jumpForce{750.f};
     float m_gravity{1650.f};
     sf::Vector2f m_speed{};
     sf::Vector2f m_movement{};

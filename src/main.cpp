@@ -43,7 +43,9 @@ void updateCamera(sf::View& camera, const Hedgehog& player, const LevelManager& 
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode({960, 540}), "Spike Game TMX Demo");
+    constexpr sf::Vector2u windowSize{1280U, 720U};
+
+    sf::RenderWindow window(sf::VideoMode(windowSize), "Spike Game TMX Demo");
     window.setFramerateLimit(60);
 
     ProgressModel progress;
@@ -64,7 +66,7 @@ int main()
     std::vector<Projectile> projectiles;
 
     sf::View camera = window.getDefaultView();
-    camera.setSize({960.f, 540.f});
+    camera.setSize(sf::Vector2f(windowSize));
     updateCamera(camera, player, levelManager);
 
     sf::Clock clock;
