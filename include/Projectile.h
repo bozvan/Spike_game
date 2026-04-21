@@ -18,7 +18,9 @@ public:
     Projectile(sf::Vector2f position, float directionX);
     void update(float dt);
     void draw(sf::RenderTarget& target) const;
-    bool isActive() const;
+    [[nodiscard]] bool isActive() const;
+    [[nodiscard]] sf::FloatRect getBounds() const;
+    void deactivate();
 };
 
 #endif // PROJECTILE_H

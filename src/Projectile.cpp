@@ -92,3 +92,18 @@ bool Projectile::isActive() const
     return active;
 }
 
+sf::FloatRect Projectile::getBounds() const
+{
+    if (!sprite.has_value())
+    {
+        return {};
+    }
+
+    return sprite->getGlobalBounds();
+}
+
+void Projectile::deactivate()
+{
+    active = false;
+}
+
