@@ -70,43 +70,55 @@
  </layer>
  <objectgroup id="4" name="Collisions">
   <object id="1" name="Floor" type="Platform" x="0" y="512" width="1280" height="64"/>
-  <object id="2" name="LowPlatform" type="Platform" x="192" y="416" width="256" height="32"/>
-  <object id="3" name="ColumnLeft" type="Platform" x="704" y="448" width="32" height="64"/>
-  <object id="4" name="ColumnRight" type="Platform" x="800" y="448" width="32" height="64"/>
-  <object id="5" name="MidPlatformLeft" type="Platform" x="480" y="384" width="96" height="32"/>
-  <object id="6" name="MidPlatformRight" type="Platform" x="640" y="384" width="128" height="32"/>
-  <object id="7" name="TopPlatformLeft" type="Platform" x="864" y="192" width="96" height="32"/>
-  <object id="8" name="TopPlatformRight" type="Platform" x="1024" y="192" width="128" height="32"/>
+  <object id="2" name="LowerLeft" type="Platform" x="128" y="416" width="160" height="32"/>
+  <object id="3" name="LowerRight" type="Platform" x="832" y="416" width="160" height="32"/>
+  <object id="4" name="CenterPlatform" type="Platform" x="448" y="352" width="160" height="32"/>
+  <object id="5" name="UpperRight" type="Platform" x="704" y="224" width="192" height="32"/>
+  <object id="6" name="TopLeft" type="Platform" x="320" y="128" width="192" height="32"/>
  </objectgroup>
  <objectgroup id="5" name="Spawns">
-  <object id="9" name="PlayerSpawn" type="PlayerSpawn" x="96" y="456" width="32" height="32"/>
-  <object id="10" name="FromTower" type="Spawn" x="1088" y="456" width="32" height="32"/>
-  <object id="11" name="FromCaves" type="Spawn" x="160" y="456" width="32" height="32"/>
+  <object id="7" name="PlayerSpawn" type="PlayerSpawn" x="96" y="456" width="32" height="32"/>
+  <object id="8" name="FromIntro" type="Spawn" x="96" y="456" width="32" height="32"/>
+  <object id="9" name="FromCaves" type="Spawn" x="1024" y="392" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="6" name="Ladders">
-  <object id="12" name="MiddleLadder" type="Ladder" x="584" y="384" width="48" height="128"/>
-  <object id="13" name="HighLadder" type="Ladder" x="968" y="192" width="48" height="320"/>
+  <object id="10" name="LadderLeft" type="Ladder" x="368" y="128" width="48" height="384"/>
+  <object id="11" name="LadderCenter" type="Ladder" x="624" y="224" width="48" height="288"/>
+  <object id="12" name="LadderRight" type="Ladder" x="960" y="320" width="48" height="192"/>
  </objectgroup>
  <objectgroup id="7" name="Entities">
-  <object id="14" name="IntroKeyLower" type="Key" x="320" y="380" width="32" height="32"/>
-  <object id="15" name="IntroKeyGap" type="Key" x="752" y="416" width="32" height="32"/>
-  <object id="16" name="IntroRedPart" type="Part" x="1072" y="160" width="32" height="32">
+  <object id="13" name="TowerKeyLower" type="Key" x="208" y="384" width="32" height="32"/>
+  <object id="14" name="TowerKeyUpper" type="Key" x="784" y="192" width="32" height="32"/>
+  <object id="15" name="TowerGreenPart" type="Part" x="400" y="96" width="32" height="32">
    <properties>
-    <property name="color" value="red"/>
+    <property name="color" value="green"/>
    </properties>
   </object>
-  <object id="17" name="IntroBat" type="Bat" x="704" y="332" width="48" height="28">
+  <object id="16" name="TowerBatLower" type="Bat" x="512" y="300" width="48" height="28">
    <properties>
-    <property name="patrolMinX" value="616"/>
-    <property name="patrolMaxX" value="864"/>
-    <property name="speed" value="92"/>
+    <property name="patrolMinX" value="432"/>
+    <property name="patrolMaxX" value="640"/>
+    <property name="speed" value="84"/>
    </properties>
   </object>
-  <object id="18" name="ExitDoor" type="Door" x="1152" y="448" width="64" height="64">
+  <object id="17" name="TowerBatUpper" type="Bat" x="896" y="160" width="48" height="28">
    <properties>
-    <property name="targetLevel" value="room_tower"/>
-    <property name="targetSpawn" value="FromIntro"/>
-    <property name="requiresAllKeys" type="bool" value="true"/>
+    <property name="patrolMinX" value="768"/>
+    <property name="patrolMaxX" value="1088"/>
+    <property name="speed" value="110"/>
+   </properties>
+  </object>
+  <object id="18" name="ReturnDoor" type="Door" x="32" y="448" width="64" height="64">
+   <properties>
+    <property name="targetLevel" value="demo"/>
+    <property name="targetSpawn" value="FromTower"/>
+    <property name="requiresAllKeys" type="bool" value="false"/>
+   </properties>
+  </object>
+  <object id="19" name="CargoLift" type="Elevator" x="1120" y="384" width="96" height="128">
+   <properties>
+    <property name="targetLevel" value="room_caves"/>
+    <property name="targetSpawn" value="FromTower"/>
    </properties>
   </object>
  </objectgroup>
