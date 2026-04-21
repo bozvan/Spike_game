@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="18" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="18">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="18" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="23">
  <tileset firstgid="1" source="basic_dirt_a.tsx"/>
  <tileset firstgid="257" source="basic_dirt_b.tsx"/>
  <layer id="1" name="Background" width="40" height="18" visible="0">
@@ -71,10 +71,13 @@
  <objectgroup id="4" name="Collisions">
   <object id="1" name="Floor" type="Platform" x="0" y="512" width="1280" height="64"/>
   <object id="2" name="LowerLeft" type="Platform" x="128" y="416" width="160" height="32"/>
-  <object id="3" name="LowerRight" type="Platform" x="832" y="416" width="160" height="32"/>
+  <object id="3" name="LowerRightLeft" type="Platform" x="832" y="416" width="56" height="32"/>
+  <object id="20" name="LowerRightRight" type="Platform" x="936" y="416" width="56" height="32"/>
   <object id="4" name="CenterPlatform" type="Platform" x="448" y="352" width="160" height="32"/>
-  <object id="5" name="UpperRight" type="Platform" x="704" y="224" width="192" height="32"/>
-  <object id="6" name="TopLeft" type="Platform" x="320" y="128" width="192" height="32"/>
+  <object id="5" name="UpperRightLeft" type="Platform" x="704" y="224" width="72" height="32"/>
+  <object id="21" name="UpperRightRight" type="Platform" x="824" y="224" width="72" height="32"/>
+  <object id="6" name="TopLeftLeft" type="Platform" x="320" y="128" width="48" height="32"/>
+  <object id="22" name="TopLeftRight" type="Platform" x="416" y="128" width="96" height="32"/>
  </objectgroup>
  <objectgroup id="5" name="Spawns">
   <object id="7" name="PlayerSpawn" type="PlayerSpawn" x="96" y="456" width="32" height="32"/>
@@ -83,12 +86,12 @@
  </objectgroup>
  <objectgroup id="6" name="Ladders">
   <object id="10" name="LadderLeft" type="Ladder" x="368" y="128" width="48" height="384"/>
-  <object id="11" name="LadderCenter" type="Ladder" x="624" y="224" width="48" height="288"/>
-  <object id="12" name="LadderRight" type="Ladder" x="960" y="320" width="48" height="192"/>
+  <object id="11" name="LadderCenter" type="Ladder" x="776" y="224" width="48" height="288"/>
+  <object id="12" name="LadderRight" type="Ladder" x="888" y="416" width="48" height="96"/>
  </objectgroup>
  <objectgroup id="7" name="Entities">
   <object id="13" name="TowerKeyLower" type="Key" x="208" y="384" width="32" height="32"/>
-  <object id="14" name="TowerKeyUpper" type="Key" x="784" y="192" width="32" height="32"/>
+  <object id="14" name="TowerKeyUpper" type="Key" x="848" y="192" width="32" height="32"/>
   <object id="15" name="TowerGreenPart" type="Part" x="400" y="96" width="32" height="32">
    <properties>
     <property name="color" value="green"/>

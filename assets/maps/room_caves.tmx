@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="18" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="18">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="18" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="15">
  <tileset firstgid="1" source="basic_dirt_a.tsx"/>
  <tileset firstgid="257" source="basic_dirt_b.tsx"/>
  <layer id="1" name="Background" width="40" height="18" visible="0">
@@ -71,16 +71,17 @@
  <objectgroup id="4" name="Collisions">
   <object id="1" name="Floor" type="Platform" x="0" y="512" width="1280" height="64"/>
   <object id="2" name="UpperLeft" type="Platform" x="96" y="352" width="160" height="32"/>
-  <object id="3" name="UpperRight" type="Platform" x="736" y="320" width="192" height="32"/>
+  <object id="3" name="UpperRightLeft" type="Platform" x="736" y="320" width="72" height="32"/>
+  <object id="14" name="UpperRightRight" type="Platform" x="856" y="320" width="72" height="32"/>
   <object id="4" name="TopRight" type="Platform" x="928" y="192" width="160" height="32"/>
-  <object id="5" name="TunnelCeiling" type="Platform" x="352" y="472" width="256" height="16"/>
+  <object id="5" name="TunnelCeiling" type="Platform" x="352" y="432" width="256" height="16"/>
  </objectgroup>
  <objectgroup id="5" name="Spawns">
   <object id="6" name="PlayerSpawn" type="PlayerSpawn" x="96" y="456" width="32" height="32"/>
   <object id="7" name="FromTower" type="Spawn" x="96" y="456" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="6" name="Ladders">
-  <object id="8" name="RightLadder" type="Ladder" x="864" y="320" width="48" height="192"/>
+  <object id="8" name="RightLadder" type="Ladder" x="808" y="320" width="48" height="192"/>
  </objectgroup>
  <objectgroup id="7" name="Entities">
   <object id="9" name="CaveKeyUpper" type="Key" x="160" y="320" width="32" height="32"/>

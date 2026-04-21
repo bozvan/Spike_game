@@ -174,22 +174,22 @@ HedgehogInput Hedgehog::sampleInput() const
 {
     HedgehogInput input;
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
     {
         input.moveAxis -= 1.f;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
     {
         input.moveAxis += 1.f;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Up))
     {
         input.climbAxis -= 1.f;
     }
 
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Down))
     {
         input.climbAxis += 1.f;
     }
