@@ -49,6 +49,7 @@ protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
 private:
+    void constrainPlayerToWorld(Hedgehog& player);
     void rebuildCaches();
     void rebuildGameplayObjects(ProgressModel& progress);
     static std::vector<sf::FloatRect> collectRects(const std::vector<MapLoader::MapObject>& objects);
