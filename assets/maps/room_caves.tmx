@@ -77,8 +77,8 @@
   <object id="5" name="TunnelCeiling" type="Platform" x="352" y="432" width="256" height="16"/>
  </objectgroup>
  <objectgroup id="5" name="Spawns">
-  <object id="6" name="PlayerSpawn" type="PlayerSpawn" x="96" y="456" width="32" height="32"/>
-  <object id="7" name="FromTower" type="Spawn" x="1040" y="392" width="32" height="32"/>
+  <object id="6" name="PlayerSpawn" type="PlayerSpawn" x="160" y="392" width="32" height="32"/>
+  <object id="7" name="FromTower" type="Spawn" x="160" y="392" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="6" name="Ladders">
   <object id="8" name="RightLadder" type="Ladder" x="808" y="320" width="48" height="192"/>
@@ -98,10 +98,11 @@
     <property name="speed" value="100"/>
    </properties>
   </object>
-  <object id="13" name="ReturnLift" type="Elevator" x="1136" y="384" width="96" height="128">
+  <object id="13" name="ReturnLift" type="Elevator" x="32" y="384" width="96" height="128">
    <properties>
     <property name="targetLevel" value="room_tower"/>
     <property name="targetSpawn" value="FromCaves"/>
+    <property name="requiredKeys" value="3"/>
    </properties>
   </object>
  </objectgroup>

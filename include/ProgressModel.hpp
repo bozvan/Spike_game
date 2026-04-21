@@ -33,6 +33,7 @@ public:
 
     void reset();
     void setCurrentLevel(std::string levelId);
+    void setLevelKeyTarget(std::string levelId, std::size_t totalKeys);
     void setLevelKeyTarget(std::size_t totalKeys);
 
     [[nodiscard]] const std::string& getCurrentLevel() const;

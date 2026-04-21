@@ -1,12 +1,13 @@
 #include "HudOverlay.hpp"
 
 #include <array>
+#include <string>
 
 void HudOverlay::onProgressChanged(const ProgressModel& progress)
 {
     m_lives = progress.getLives();
-    m_keysCollected = progress.getCollectedKeysInCurrentLevel();
-    m_keysRequired = progress.getRequiredKeysInCurrentLevel();
+    m_keysCollected = progress.getCollectedKeyCount();
+    m_keysRequired = progress.getRequiredKeyCount();
     m_hasRedPart = progress.hasPart(PartColor::Red);
     m_hasBluePart = progress.hasPart(PartColor::Blue);
     m_hasGreenPart = progress.hasPart(PartColor::Green);
@@ -14,7 +15,7 @@ void HudOverlay::onProgressChanged(const ProgressModel& progress)
 
 void HudOverlay::draw(sf::RenderTarget& target, sf::RenderStates states) const
 {
-    sf::RectangleShape panel({232.f, 86.f});
+    sf::RectangleShape panel({252.f, 86.f});
     panel.setPosition({16.f, 16.f});
     panel.setFillColor(sf::Color(24, 31, 43, 190));
     panel.setOutlineThickness(2.f);
@@ -26,15 +27,16 @@ void HudOverlay::draw(sf::RenderTarget& target, sf::RenderStates states) const
         drawHeart(target, {28.f + index * 28.f, 28.f}, index < m_lives);
     }
 
-    drawPartIndicator(target, {122.f, 30.f}, PartColor::Red, m_hasRedPart);
-    drawPartIndicator(target, {152.f, 30.f}, PartColor::Blue, m_hasBluePart);
-    drawPartIndicator(target, {182.f, 30.f}, PartColor::Green, m_hasGreenPart);
+    drawPartIndicator(target, {142.f, 30.f}, PartColor::Red, m_hasRedPart);
+    drawPartIndicator(target, {172.f, 30.f}, PartColor::Blue, m_hasBluePart);
+    drawPartIndicator(target, {202.f, 30.f}, PartColor::Green, m_hasGreenPart);
 
-    const std::size_t visibleKeys = m_keysRequired > 0 ? m_keysRequired : 3U;
-    for (std::size_t index = 0; index < visibleKeys; ++index)
-    {
-        drawKeyIndicator(target, {28.f + static_cast<float>(index) * 22.f, 62.f}, index < m_keysCollected);
-    }
+    drawKeyIndicator(target, {28.f, 58.f}, m_keysCollected > 0U);
+    drawCounterText(
+        target,
+        {50.f, 57.f},
+        std::to_string(m_keysCollected) + "/" + std::to_string(m_keysRequired),
+        sf::Color(245, 210, 70));
 }
 
 void HudOverlay::drawHeart(sf::RenderTarget& target, const sf::Vector2f position, const bool filled) const
@@ -107,6 +109,79 @@ void HudOverlay::drawKeyIndicator(sf::RenderTarget& target,
     tooth.setFillColor(color);
     tooth.setPosition({position.x + 15.f, position.y + 5.f});
     target.draw(tooth);
+}
+
+void HudOverlay::drawCounterText(sf::RenderTarget& target,
+                                 const sf::Vector2f position,
+                                 const std::string& text,
+                                 const sf::Color color) const
+{
+    float cursorX = position.x;
+    for (const char symbol : text)
+    {
+        if (symbol >= '0' && symbol <= '9')
+        {
+            drawDigitGlyph(target, {cursorX, position.y}, static_cast<unsigned int>(symbol - '0'), color);
+            cursorX += 14.f;
+            continue;
+        }
+
+        if (symbol == '/')
+        {
+            drawSlashGlyph(target, {cursorX, position.y}, color);
+            cursorX += 10.f;
+        }
+    }
+}
+
+void HudOverlay::drawDigitGlyph(sf::RenderTarget& target,
+                                const sf::Vector2f position,
+                                const unsigned int digit,
+                                const sf::Color color) const
+{
+    static constexpr std::array<std::array<bool, 7>, 10> segments{{
+        {{true, true, true, false, true, true, true}},
+        {{false, false, true, false, false, true, false}},
+        {{true, false, true, true, true, false, true}},
+        {{true, false, true, true, false, true, true}},
+        {{false, true, true, true, false, true, false}},
+        {{true, true, false, true, false, true, true}},
+        {{true, true, false, true, true, true, true}},
+        {{true, false, true, false, false, true, false}},
+        {{true, true, true, true, true, true, true}},
+        {{true, true, true, true, false, true, true}},
+    }};
+
+    if (digit >= segments.size())
+    {
+        return;
+    }
+
+    const auto drawSegment = [&](const sf::Vector2f segmentPosition, const sf::Vector2f size)
+    {
+        sf::RectangleShape segment(size);
+        segment.setPosition(position + segmentPosition);
+        segment.setFillColor(color);
+        target.draw(segment);
+    };
+
+    if (segments[digit][0]) drawSegment({2.f, 0.f}, {8.f, 2.f});
+    if (segments[digit][1]) drawSegment({0.f, 2.f}, {2.f, 7.f});
+    if (segments[digit][2]) drawSegment({10.f, 2.f}, {2.f, 7.f});
+    if (segments[digit][3]) drawSegment({2.f, 8.f}, {8.f, 2.f});
+    if (segments[digit][4]) drawSegment({0.f, 10.f}, {2.f, 7.f});
+    if (segments[digit][5]) drawSegment({10.f, 10.f}, {2.f, 7.f});
+    if (segments[digit][6]) drawSegment({2.f, 16.f}, {8.f, 2.f});
+}
+
+void HudOverlay::drawSlashGlyph(sf::RenderTarget& target, const sf::Vector2f position, const sf::Color color) const
+{
+    sf::RectangleShape slash({2.f, 18.f});
+    slash.setOrigin({1.f, 9.f});
+    slash.setPosition({position.x + 4.f, position.y + 9.f});
+    slash.setRotation(sf::degrees(24.f));
+    slash.setFillColor(color);
+    target.draw(slash);
 }
 
 sf::Color HudOverlay::colorForPart(const PartColor color)

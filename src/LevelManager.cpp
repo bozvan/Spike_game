@@ -13,6 +13,32 @@
 
 namespace
 {
+std::size_t countKeysInEntities(const std::vector<MapLoader::MapObject>& objects)
+{
+    std::size_t keyCount = 0U;
+    for (const MapLoader::MapObject& object : objects)
+    {
+        if (object.type == "Key" || object.type == "key")
+        {
+            ++keyCount;
+        }
+    }
+
+    return keyCount;
+}
+
+std::size_t countKeysInLevelMap(const std::string& mapPath)
+{
+    MapLoader map;
+    if (!map.loadFromFile(mapPath))
+    {
+        std::cerr << "Failed to preload level map for key count: " << mapPath << '\n';
+        return 0U;
+    }
+
+    return countKeysInEntities(map.getObjects("Entities"));
+}
+
 void drawPlatform(sf::RenderTarget& target, const sf::FloatRect& bounds, const sf::RenderStates states)
 {
     sf::RectangleShape body(bounds.size);
@@ -62,8 +88,17 @@ bool LevelManager::registerLevel(LevelDefinition definition)
         return false;
     }
 
+    m_levelKeyTargets[definition.id] = countKeysInLevelMap(definition.mapPath);
     m_levels[definition.id] = std::move(definition);
     return true;
+}
+
+void LevelManager::seedProgress(ProgressModel& progress) const
+{
+    for (const auto& [levelId, keyCount] : m_levelKeyTargets)
+    {
+        progress.setLevelKeyTarget(levelId, keyCount);
+    }
 }
 
 bool LevelManager::loadLevel(const std::string& levelId,
@@ -290,16 +325,8 @@ void LevelManager::rebuildGameplayObjects(ProgressModel& progress)
     m_interactables.clear();
 
     const auto& entities = m_map.getObjects("Entities");
-    std::size_t keyCount = 0U;
-    for (const MapLoader::MapObject& object : entities)
-    {
-        if (object.type == "Key" || object.type == "key")
-        {
-            ++keyCount;
-        }
-    }
-
-    progress.setLevelKeyTarget(keyCount);
+    const std::size_t keyCount = countKeysInEntities(entities);
+    progress.setLevelKeyTarget(m_currentLevelId, keyCount);
 
     for (const MapLoader::MapObject& object : entities)
     {

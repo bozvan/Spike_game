@@ -122,6 +122,7 @@
    <properties>
     <property name="targetLevel" value="room_caves"/>
     <property name="targetSpawn" value="FromTower"/>
+    <property name="requiredKeys" value="3"/>
    </properties>
   </object>
  </objectgroup>

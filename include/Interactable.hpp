@@ -56,7 +56,8 @@ public:
     ElevatorInteractable(std::string objectId,
                          sf::FloatRect bounds,
                          std::string targetLevelId,
-                         std::string targetSpawnName);
+                         std::string targetSpawnName,
+                         std::size_t requiredKeyCount);
 
     void syncState(const sf::FloatRect& playerBounds, const ProgressModel& progress) override;
     [[nodiscard]] std::optional<LevelTransitionRequest> tryInteract(bool interactRequested,
@@ -70,7 +71,9 @@ private:
     sf::FloatRect m_bounds;
     std::string m_targetLevelId;
     std::string m_targetSpawnName;
+    std::size_t m_requiredKeyCount{};
     bool m_playerNearby{};
+    bool m_unlocked{};
 };
 
 class MegaDoorInteractable final : public Interactable

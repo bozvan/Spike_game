@@ -36,10 +36,15 @@ void ProgressModel::setCurrentLevel(std::string levelId)
     notifyObservers();
 }
 
+void ProgressModel::setLevelKeyTarget(std::string levelId, const std::size_t totalKeys)
+{
+    m_requiredKeysByLevel[std::move(levelId)] = totalKeys;
+    notifyObservers();
+}
+
 void ProgressModel::setLevelKeyTarget(const std::size_t totalKeys)
 {
-    m_requiredKeysByLevel[m_currentLevelId] = totalKeys;
-    notifyObservers();
+    setLevelKeyTarget(m_currentLevelId, totalKeys);
 }
 
 const std::string& ProgressModel::getCurrentLevel() const

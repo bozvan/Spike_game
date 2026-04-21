@@ -30,6 +30,7 @@ public:
     ~LevelManager();
 
     bool registerLevel(LevelDefinition definition);
+    void seedProgress(ProgressModel& progress) const;
     bool loadLevel(const std::string& levelId, const std::string& spawnName, ProgressModel& progress);
     void update(float deltaTimeSeconds,
                 Hedgehog& player,
@@ -56,6 +57,7 @@ private:
 
     MapLoader m_map;
     std::unordered_map<std::string, LevelDefinition> m_levels;
+    std::unordered_map<std::string, std::size_t> m_levelKeyTargets;
     std::string m_currentLevelId;
     std::string m_currentSpawnName;
     std::vector<sf::FloatRect> m_collisionRects;

@@ -157,7 +157,8 @@ std::unique_ptr<Interactable> GameObjectFactory::createInteractable(const std::s
             objectId,
             object.bounds,
             getProperty(object, "targetLevel", levelId),
-            getProperty(object, "targetSpawn", "PlayerSpawn"));
+            getProperty(object, "targetSpawn", "PlayerSpawn"),
+            static_cast<std::size_t>(std::max(0.f, getFloatProperty(object, "requiredKeys", 3.f))));
     }
 
     return nullptr;

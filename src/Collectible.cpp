@@ -22,8 +22,8 @@ bool KeyCollectible::tryCollect(const sf::FloatRect& playerBounds, ProgressModel
     }
 
     m_active = false;
-    std::cout << "Picked up key (" << progress.getCollectedKeysInCurrentLevel()
-              << '/' << progress.getRequiredKeysInCurrentLevel() << ")\n";
+    std::cout << "Picked up key (" << progress.getCollectedKeyCount()
+              << '/' << progress.getRequiredKeyCount() << " total)\n";
     return true;
 }
 

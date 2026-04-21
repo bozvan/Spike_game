@@ -64,24 +64,37 @@ void DoorInteractable::draw(sf::RenderTarget& target, sf::RenderStates states) c
 ElevatorInteractable::ElevatorInteractable(std::string objectId,
                                            const sf::FloatRect bounds,
                                            std::string targetLevelId,
-                                           std::string targetSpawnName)
+                                           std::string targetSpawnName,
+                                           const std::size_t requiredKeyCount)
     : m_objectId(std::move(objectId)),
       m_bounds(bounds),
       m_targetLevelId(std::move(targetLevelId)),
-      m_targetSpawnName(std::move(targetSpawnName))
+      m_targetSpawnName(std::move(targetSpawnName)),
+      m_requiredKeyCount(requiredKeyCount)
 {
 }
 
-void ElevatorInteractable::syncState(const sf::FloatRect& playerBounds, const ProgressModel&)
+void ElevatorInteractable::syncState(const sf::FloatRect& playerBounds, const ProgressModel& progress)
 {
     m_playerNearby = playerBounds.findIntersection(m_bounds).has_value();
+    m_unlocked = progress.getCollectedKeyCount() >= m_requiredKeyCount;
 }
 
 std::optional<LevelTransitionRequest> ElevatorInteractable::tryInteract(const bool interactRequested,
-                                                                        const ProgressModel&)
+                                                                        const ProgressModel& progress)
 {
     if (!interactRequested || !m_playerNearby)
     {
+        return std::nullopt;
+    }
+
+    if (!m_unlocked)
+    {
+        std::cout << "Elevator is locked. Keys total: "
+                  << progress.getCollectedKeyCount()
+                  << '/'
+                  << m_requiredKeyCount
+                  << '\n';
         return std::nullopt;
     }
 
@@ -93,15 +106,23 @@ void ElevatorInteractable::draw(sf::RenderTarget& target, sf::RenderStates state
 {
     sf::RectangleShape frame(m_bounds.size);
     frame.setPosition(m_bounds.position);
-    frame.setFillColor(sf::Color(90, 98, 118));
+    frame.setFillColor(m_unlocked ? sf::Color(90, 98, 118) : sf::Color(73, 79, 95));
     frame.setOutlineThickness(3.f);
     frame.setOutlineColor(m_playerNearby ? sf::Color(255, 231, 122) : sf::Color(40, 44, 55));
     target.draw(frame, states);
 
     sf::RectangleShape cabin({m_bounds.size.x - 12.f, m_bounds.size.y - 12.f});
     cabin.setPosition({m_bounds.position.x + 6.f, m_bounds.position.y + 6.f});
-    cabin.setFillColor(sf::Color(163, 181, 214));
+    cabin.setFillColor(m_unlocked ? sf::Color(163, 181, 214) : sf::Color(112, 122, 142));
     target.draw(cabin, states);
+
+    if (!m_unlocked)
+    {
+        sf::RectangleShape lockBar({m_bounds.size.x - 24.f, 10.f});
+        lockBar.setPosition({m_bounds.position.x + 12.f, m_bounds.position.y + 18.f});
+        lockBar.setFillColor(sf::Color(214, 168, 64));
+        target.draw(lockBar, states);
+    }
 }
 
 MegaDoorInteractable::MegaDoorInteractable(std::string objectId,

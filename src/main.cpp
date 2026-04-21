@@ -141,6 +141,7 @@ int main()
     levelManager.registerLevel({"demo", "assets/maps/demo_map.tmx", "PlayerSpawn"});
     levelManager.registerLevel({"room_tower", "assets/maps/room_tower.tmx", "PlayerSpawn"});
     levelManager.registerLevel({"room_caves", "assets/maps/room_caves.tmx", "PlayerSpawn"});
+    levelManager.seedProgress(progress);
 
     if (!levelManager.loadLevel("demo", "PlayerSpawn", progress))
     {
