@@ -70,6 +70,30 @@ bool ProgressModel::areAllKeysCollectedInCurrentLevel() const
     return required == 0U || getCollectedKeysInCurrentLevel() >= required;
 }
 
+std::size_t ProgressModel::getCollectedKeyCount() const
+{
+    std::size_t totalKeys = 0U;
+    for (const auto& [levelId, collectedKeys] : m_collectedKeysByLevel)
+    {
+        static_cast<void>(levelId);
+        totalKeys += collectedKeys;
+    }
+
+    return totalKeys;
+}
+
+std::size_t ProgressModel::getRequiredKeyCount() const
+{
+    std::size_t totalKeys = 0U;
+    for (const auto& [levelId, requiredKeys] : m_requiredKeysByLevel)
+    {
+        static_cast<void>(levelId);
+        totalKeys += requiredKeys;
+    }
+
+    return totalKeys;
+}
+
 bool ProgressModel::hasCollectedObject(const std::string& objectId) const
 {
     return m_collectedObjects.find(objectId) != m_collectedObjects.end();
@@ -83,6 +107,27 @@ bool ProgressModel::hasPart(const PartColor color) const
 std::size_t ProgressModel::getCollectedPartCount() const
 {
     return static_cast<std::size_t>(std::count(m_collectedParts.begin(), m_collectedParts.end(), true));
+}
+
+std::size_t ProgressModel::getRequiredPartCount() const
+{
+    return m_collectedParts.size();
+}
+
+bool ProgressModel::areAllKeysCollected() const
+{
+    const std::size_t requiredKeys = getRequiredKeyCount();
+    return requiredKeys > 0U && getCollectedKeyCount() >= requiredKeys;
+}
+
+bool ProgressModel::areAllPartsCollected() const
+{
+    return getCollectedPartCount() >= getRequiredPartCount();
+}
+
+bool ProgressModel::isFullyCompleted() const
+{
+    return areAllKeysCollected() && areAllPartsCollected();
 }
 
 bool ProgressModel::collectKey(const std::string& objectId)

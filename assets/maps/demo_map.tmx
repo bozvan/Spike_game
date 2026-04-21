@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="18" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="18">
+<map version="1.10" tiledversion="1.11.2" orientation="orthogonal" renderorder="right-down" width="40" height="18" tilewidth="32" tileheight="32" infinite="0" nextlayerid="8" nextobjectid="20">
  <tileset firstgid="1" source="basic_dirt_a.tsx"/>
  <tileset firstgid="257" source="basic_dirt_b.tsx"/>
  <layer id="1" name="Background" width="40" height="18">
@@ -95,11 +95,16 @@
     <property name="color" value="red"/>
    </properties>
   </object>
-  <object id="17" name="IntroBat" type="Bat" x="704" y="332" width="48" height="28">
+ <object id="17" name="IntroBat" type="Bat" x="704" y="332" width="48" height="28">
    <properties>
     <property name="patrolMinX" value="616"/>
     <property name="patrolMaxX" value="864"/>
     <property name="speed" value="92"/>
+   </properties>
+  </object>
+  <object id="19" name="GoldenMegaDoor" type="MegaDoor" x="32" y="448" width="64" height="64">
+   <properties>
+    <property name="targetLevel" value="__victory__"/>
    </properties>
   </object>
   <object id="18" name="ExitDoor" type="Door" x="1152" y="448" width="64" height="64">

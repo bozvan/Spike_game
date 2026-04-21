@@ -40,9 +40,15 @@ public:
     [[nodiscard]] std::size_t getCollectedKeysInCurrentLevel() const;
     [[nodiscard]] std::size_t getRequiredKeysInCurrentLevel() const;
     [[nodiscard]] bool areAllKeysCollectedInCurrentLevel() const;
+    [[nodiscard]] std::size_t getCollectedKeyCount() const;
+    [[nodiscard]] std::size_t getRequiredKeyCount() const;
     [[nodiscard]] bool hasCollectedObject(const std::string& objectId) const;
     [[nodiscard]] bool hasPart(PartColor color) const;
     [[nodiscard]] std::size_t getCollectedPartCount() const;
+    [[nodiscard]] std::size_t getRequiredPartCount() const;
+    [[nodiscard]] bool areAllKeysCollected() const;
+    [[nodiscard]] bool areAllPartsCollected() const;
+    [[nodiscard]] bool isFullyCompleted() const;
 
     bool collectKey(const std::string& objectId);
     bool collectPart(const std::string& objectId, PartColor color);

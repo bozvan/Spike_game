@@ -142,6 +142,15 @@ std::unique_ptr<Interactable> GameObjectFactory::createInteractable(const std::s
             getBoolProperty(object, "requiresAllKeys", true));
     }
 
+    if (type == "megadoor" || type == "goaldoor" || type == "finaldoor")
+    {
+        return std::make_unique<MegaDoorInteractable>(
+            objectId,
+            object.bounds,
+            getProperty(object, "targetLevel", kVictoryLevelId),
+            getProperty(object, "targetSpawn", "PlayerSpawn"));
+    }
+
     if (type == "elevator" || type == "lift")
     {
         return std::make_unique<ElevatorInteractable>(
