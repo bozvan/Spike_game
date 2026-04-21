@@ -78,7 +78,7 @@
  </objectgroup>
  <objectgroup id="5" name="Spawns">
   <object id="6" name="PlayerSpawn" type="PlayerSpawn" x="96" y="456" width="32" height="32"/>
-  <object id="7" name="FromTower" type="Spawn" x="96" y="456" width="32" height="32"/>
+  <object id="7" name="FromTower" type="Spawn" x="1040" y="392" width="32" height="32"/>
  </objectgroup>
  <objectgroup id="6" name="Ladders">
   <object id="8" name="RightLadder" type="Ladder" x="808" y="320" width="48" height="192"/>
@@ -100,7 +100,7 @@
   </object>
   <object id="13" name="ReturnLift" type="Elevator" x="1136" y="384" width="96" height="128">
    <properties>
-    <property name="targetLevel" value="demo"/>
+    <property name="targetLevel" value="room_tower"/>
     <property name="targetSpawn" value="FromCaves"/>
    </properties>
   </object>
