@@ -71,6 +71,20 @@ void LevelManager::update(const float deltaTimeSeconds,
                 break;
             }
         }
+
+        if (!projectile.isActive())
+        {
+            continue;
+        }
+
+        for (const sf::FloatRect& collider : m_collisionRects)
+        {
+            if (projectile.getBounds().findIntersection(collider).has_value())
+            {
+                projectile.deactivate();
+                break;
+            }
+        }
     }
 
     for (const std::unique_ptr<Enemy>& enemy : m_enemies)

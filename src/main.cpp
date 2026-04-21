@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 
 #include "Hedgehog.h"
+#include "HudOverlay.hpp"
 #include "LevelManager.hpp"
 #include "ProgressModel.hpp"
 #include "Projectile.h"
@@ -46,6 +47,8 @@ int main()
     window.setFramerateLimit(60);
 
     ProgressModel progress;
+    HudOverlay hud;
+    progress.addObserver(hud);
     LevelManager levelManager;
     levelManager.registerLevel({"demo", "assets/maps/demo_map.tmx", "PlayerSpawn"});
     levelManager.registerLevel({"room_tower", "assets/maps/room_tower.tmx", "PlayerSpawn"});
@@ -139,6 +142,8 @@ int main()
             projectile.draw(window);
         }
         player.draw(window);
+        window.setView(window.getDefaultView());
+        window.draw(hud);
         window.display();
     }
 

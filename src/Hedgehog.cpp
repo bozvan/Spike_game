@@ -343,7 +343,8 @@ void Hedgehog::refreshSprite()
     if (m_framePixelSize.x > 0U && m_framePixelSize.y > 0U)
     {
         const float scaleX = m_size.x / static_cast<float>(m_framePixelSize.x);
-        const float scaleY = m_size.y / static_cast<float>(m_framePixelSize.y);
+        const bool isRolling = m_state != nullptr && std::string(m_state->name()) == "Rolling";
+        const float scaleY = (m_size.y / static_cast<float>(m_framePixelSize.y)) * (isRolling ? 0.78f : 1.f);
         m_sprite.setScale({m_facingLeft ? -scaleX : scaleX, scaleY});
     }
 
