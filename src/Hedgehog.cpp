@@ -1,351 +1,387 @@
 #include "Hedgehog.h"
+
 #include "Projectile.h"
-#include <iostream>
+
+#include <algorithm>
 #include <cmath>
+#include <iostream>
 
-Hedgehog::Hedgehog(sf::Vector2f position, std::string& texturePath)
-    : texture(),
-    sprite(texture),
-    isPressed(false),
-    running(false),
-    jumping(false),
-    onGround(false),
-    jump_force(200.f),
-    gravity(1200.f),
-    speed(0.f,0.f),
-    speedRun(400.f),
-    state(0),
-    shootInterval(0.5f)
+Hedgehog::Hedgehog(const std::string& texturePath, const sf::Vector2f size)
+    : m_sprite(m_texture),
+      m_bounds({0.f, 0.f}, {44.f, 56.f}),
+      m_size(size),
+      m_state(&normalState())
 {
-    if (!texture.loadFromFile(texturePath))
+    if (!m_texture.loadFromFile(texturePath))
     {
-        std::cout << "Texture Hedgehog not found\n";
+        std::cerr << "Failed to load hedgehog texture: " << texturePath << '\n';
     }
 
-    image.loadFromFile(texturePath);
+    m_texture.setSmooth(false);
 
-    createAlphaMask();
+    const sf::Vector2u textureSize = m_texture.getSize();
+    if (textureSize.x > 0U && textureSize.y > 0U)
+    {
+        m_framePixelSize.x = textureSize.x;
+        m_framePixelSize.y = std::max(1U, textureSize.y / 2U);
+        m_sprite.setTextureRect(
+            sf::IntRect({0, 0},
+                        {static_cast<int>(m_framePixelSize.x), static_cast<int>(m_framePixelSize.y)}));
+        m_sprite.setOrigin({
+            static_cast<float>(m_framePixelSize.x) * 0.5f,
+            static_cast<float>(m_framePixelSize.y) * 0.5f});
+    }
 
-    int frameWidth = texture.getSize().x;
-    int frameHeight = texture.getSize().y / 2;
+    if (m_state != nullptr)
+    {
+        m_state->enter(*this);
+    }
 
-    sprite.setTexture(texture);
-    sprite.setPosition(position);
-    sprite.setTextureRect(sf::IntRect({0,0},{frameWidth,frameHeight}));
-    sprite.setScale({0.5f, 0.5f});
-    sprite.setOrigin({sprite.getLocalBounds().getCenter().x,0.f});
+    refreshSprite();
 }
 
-void Hedgehog::createAlphaMask()
+Hedgehog::~Hedgehog() = default;
+
+void Hedgehog::handleEvent(const sf::Event& event)
 {
-    auto size = image.getSize();
-
-    alphaMask.resize(size.y,
-                     std::vector<bool>(size.x,false));
-
-    for(unsigned y=0;y<size.y;y++)
+    if (const auto* keyPressed = event.getIf<sf::Event::KeyPressed>())
     {
-        for(unsigned x=0;x<size.x;x++)
+        if (keyPressed->code == sf::Keyboard::Key::Space)
         {
-            alphaMask[y][x] =
-                image.getPixel({x,y}).a > 0;
+            m_jumpRequested = true;
         }
     }
 }
 
-sf::Sprite& Hedgehog::getSprite()
+void Hedgehog::update(const float deltaTimeSeconds,
+                      const std::vector<sf::FloatRect>& collisionRects,
+                      const std::vector<sf::FloatRect>& ladderRects)
 {
-    return sprite;
-}
+    m_invulnerabilitySeconds = std::max(0.f, m_invulnerabilitySeconds - deltaTimeSeconds);
+    refreshGrounded(collisionRects);
 
-const sf::Sprite& Hedgehog::getSprite() const
-{
-    return sprite;
-}
+    m_running = false;
+    m_movement = {0.f, 0.f};
 
-void Hedgehog::handleEvent(const sf::Event& event,
-                           const sf::RenderWindow& window)
-{
-    if (const auto* mousePressed =
-        event.getIf<sf::Event::MouseButtonPressed>())
+    const HedgehogInput input = sampleInput();
+    if (m_state != nullptr)
     {
-        if (mousePressed->button == sf::Mouse::Button::Left)
-        {
-            sf::Vector2f mousePos =
-                window.mapPixelToCoords(
-                    {mousePressed->position.x,
-                     mousePressed->position.y});
-
-            if (sprite.getGlobalBounds().contains(mousePos))
-            {
-                isPressed = true;
-                std::cout << "Button is pressed!\n";
-            }
-        }
+        m_state->update(*this, input, deltaTimeSeconds, collisionRects, ladderRects);
     }
-}
 
-void Hedgehog::set_position(const sf::Vector2f& pos)
-{
-    sprite.setPosition(pos);
+    updateAnimation(deltaTimeSeconds, input.moveAxis);
+    refreshSprite();
+    m_jumpRequested = false;
 }
 
 void Hedgehog::run()
 {
-    running = true;
-
-    int frameWidth = texture.getSize().x;
-    int frameHeight = texture.getSize().y / 2;
-
-    int frameY = frameHeight;
-
-    state = (state + 1) % 2;
-    if (state == 0)
-        sprite.setTextureRect(sf::IntRect({0,frameY},{frameWidth,frameHeight}));
-    else
-        sprite.setTextureRect(sf::IntRect({0,0},{frameWidth,frameHeight}));
+    m_running = true;
 }
 
-void Hedgehog::jump(Direction direction)
+void Hedgehog::jump()
 {
-    if (!jumping)
-    {
-        speed.y = -jump_force;
-
-        if (direction == Direction::LEFT)
-            speed.x = -speedRun;
-        else if (direction == Direction::RIGHT)
-            speed.x = speedRun;
-
-        jumping = true;
-    }
+    m_speed.y = -m_jumpForce;
+    m_jumping = true;
+    m_onGround = false;
 }
 
 void Hedgehog::shoot(std::vector<Projectile>& projectiles)
 {
-    float startX = sprite.getPosition().x;
-    float startY = sprite.getPosition().y;
+    if (m_shootCooldown.getElapsedTime().asSeconds() < m_shootInterval)
+    {
+        return;
+    }
 
-    float direction =
-        (sprite.getScale().x > 0) ? -1.f : 1.f;
+    projectiles.emplace_back(
+        sf::Vector2f{
+            m_bounds.getCenter().x + (m_facingLeft ? -1.f : 1.f) * (m_bounds.size.x * 0.5f + 10.f),
+            m_bounds.position.y + 22.f},
+        m_facingLeft ? -1.f : 1.f);
 
-    Projectile p({startX,startY},direction);
-
-    projectiles.push_back(p);
+    m_shootCooldown.restart();
 }
 
-bool Hedgehog::isCollision(sf::Sprite& otherSprite) const
+void Hedgehog::draw(sf::RenderTarget& target) const
 {
-    return sprite.getGlobalBounds()
-    .findIntersection(otherSprite.getGlobalBounds())
-        .has_value();
+    target.draw(m_sprite);
 }
 
-bool Hedgehog::pixelPerfectCollision(
-    sf::Sprite& otherSprite,
-    const std::vector<std::vector<bool>>& otherMask)
+void Hedgehog::setPosition(const sf::Vector2f position)
 {
-    auto intersection =
-        sprite.getGlobalBounds().findIntersection(
-            otherSprite.getGlobalBounds());
+    m_bounds.position = position;
+    refreshSprite();
+}
 
-    if(!intersection)
+void Hedgehog::set_position(const sf::Vector2f position)
+{
+    setPosition(position);
+}
+
+sf::Vector2f Hedgehog::getPosition() const
+{
+    return m_bounds.position;
+}
+
+sf::Vector2f Hedgehog::getCenter() const
+{
+    return m_bounds.getCenter();
+}
+
+const sf::FloatRect& Hedgehog::getBounds() const
+{
+    return m_bounds;
+}
+
+bool Hedgehog::canTakeDamage() const
+{
+    return m_invulnerabilitySeconds <= 0.f;
+}
+
+bool Hedgehog::takeDamage(const float sourceX)
+{
+    if (!canTakeDamage())
+    {
         return false;
-
-    auto overlap = *intersection;
-
-    for(int x=overlap.position.x;
-         x<overlap.position.x+overlap.size.x;
-         x++)
-    {
-        for(int y=overlap.position.y;
-             y<overlap.position.y+overlap.size.y;
-             y++)
-        {
-            sf::Vector2f p1 =
-                sprite.getInverseTransform()
-                    .transformPoint({(float)x,(float)y});
-
-            sf::Vector2f p2 =
-                otherSprite.getInverseTransform()
-                    .transformPoint({(float)x,(float)y});
-
-            int ix1 = (int)p1.x;
-            int iy1 = (int)p1.y;
-
-            int ix2 = (int)p2.x;
-            int iy2 = (int)p2.y;
-
-            if(ix1 < 0 || iy1 < 0 ||
-                ix2 < 0 || iy2 < 0)
-                continue;
-
-            if(iy1 >= alphaMask.size() ||
-                ix1 >= alphaMask[0].size())
-                continue;
-
-            if(iy2 >= otherMask.size() ||
-                ix2 >= otherMask[0].size())
-                continue;
-
-            if(alphaMask[iy1][ix1] &&
-                otherMask[iy2][ix2])
-                return true;
-        }
     }
 
-    return false;
+    m_invulnerabilitySeconds = 1.f;
+    m_speed.x = m_bounds.getCenter().x < sourceX ? -220.f : 220.f;
+    m_speed.y = -220.f;
+    m_onGround = false;
+    return true;
 }
 
-static constexpr int MAX_RESOLVE_STEPS = 200;
-
-void Hedgehog::resolveHorizontalCollision(sf::Sprite& otherSprite,
-                                          const std::vector<std::vector<bool>>& otherMask,
-                                          float oldX)
+void Hedgehog::respawn(const sf::Vector2f position)
 {
-    if (!pixelPerfectCollision(otherSprite, otherMask))
-        return;
-
-    int direction = speed.x > 0 ? 1 : -1;
-
-    bool separated = false;
-    for (int step = 0; step < MAX_RESOLVE_STEPS; ++step)
-    {
-        sprite.move({-direction * 1.f, 0.f});
-        if (!pixelPerfectCollision(otherSprite, otherMask))
-        {
-            separated = true;
-            break;
-        }
-    }
-
-    if (!separated)
-    {
-        sf::Vector2f pos = sprite.getPosition();
-        sprite.setPosition({oldX, pos.y});
-    }
-
-    speed.x = 0.f;
+    m_speed = {0.f, 0.f};
+    m_jumpRequested = false;
+    m_onGround = false;
+    m_onLadder = false;
+    m_invulnerabilitySeconds = 0.f;
+    setStandingHitbox();
+    setPosition(position);
+    changeState(normalState());
 }
 
-
-void Hedgehog::resolveVerticalCollision(sf::Sprite& otherSprite,
-                                        const std::vector<std::vector<bool>>& otherMask,
-                                        float oldY)
+void Hedgehog::changeState(HedgehogState& nextState)
 {
-    if (!pixelPerfectCollision(otherSprite, otherMask))
-        return;
+    m_state = &nextState;
+    m_state->enter(*this);
+}
 
-    if (speed.y > 0.f)
+HedgehogInput Hedgehog::sampleInput() const
+{
+    HedgehogInput input;
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A))
     {
-        int steps = 0;
-        while (pixelPerfectCollision(otherSprite, otherMask) && steps++ < MAX_RESOLVE_STEPS)
-            sprite.move({0.f, -1.f});
-
-        speed.y = 0.f;
-        jumping = false;
-        onGround = true;
+        input.moveAxis -= 1.f;
     }
-    else if (speed.y < 0.f)
+
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D))
     {
-        int steps = 0;
-        while (pixelPerfectCollision(otherSprite, otherMask) && steps++ < MAX_RESOLVE_STEPS)
-            sprite.move({0.f, 1.f});
+        input.moveAxis += 1.f;
+    }
 
-        speed.y = 0.f;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
+    {
+        input.climbAxis -= 1.f;
+    }
 
-        if (pixelPerfectCollision(otherSprite, otherMask))
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
+    {
+        input.climbAxis += 1.f;
+    }
+
+    input.jumpPressed = m_jumpRequested;
+    input.rollHeld = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LControl);
+    return input;
+}
+
+void Hedgehog::refreshGrounded(const std::vector<sf::FloatRect>& collisionRects)
+{
+    const sf::FloatRect groundProbe({m_bounds.position.x, m_bounds.position.y + 1.f}, m_bounds.size);
+    if (!m_onLadder)
+    {
+        m_onGround = intersectsAny(groundProbe, collisionRects);
+        m_jumping = !m_onGround;
+    }
+}
+
+void Hedgehog::applyGravity(const float deltaTimeSeconds)
+{
+    m_speed.y = std::min(m_speed.y + m_gravity * deltaTimeSeconds, m_maxFallSpeed);
+}
+
+void Hedgehog::moveAndResolve(const float deltaTimeSeconds, const std::vector<sf::FloatRect>& collisionRects)
+{
+    m_bounds.position.x += m_speed.x * deltaTimeSeconds;
+    resolveHorizontalCollisions(collisionRects);
+
+    m_bounds.position.y += m_speed.y * deltaTimeSeconds;
+    m_onGround = false;
+    resolveVerticalCollisions(collisionRects);
+}
+
+void Hedgehog::setStandingHitbox()
+{
+    setHitboxKeepingFeet(m_standingHitbox);
+}
+
+void Hedgehog::setRollingHitbox()
+{
+    setHitboxKeepingFeet(m_rollingHitbox);
+}
+
+bool Hedgehog::canStandUp(const std::vector<sf::FloatRect>& collisionRects) const
+{
+    sf::FloatRect standingBounds = m_bounds;
+    const float feetY = m_bounds.position.y + m_bounds.size.y;
+    standingBounds.size = m_standingHitbox;
+    standingBounds.position.y = feetY - standingBounds.size.y;
+    return !intersectsAny(standingBounds, collisionRects);
+}
+
+void Hedgehog::setHitboxKeepingFeet(const sf::Vector2f newSize)
+{
+    const float feetY = m_bounds.position.y + m_bounds.size.y;
+    m_bounds.size = newSize;
+    m_bounds.position.y = feetY - newSize.y;
+}
+
+void Hedgehog::updateFacing(const float moveAxis)
+{
+    if (moveAxis < 0.f)
+    {
+        m_facingLeft = true;
+    }
+    else if (moveAxis > 0.f)
+    {
+        m_facingLeft = false;
+    }
+}
+
+bool Hedgehog::intersectsAny(const sf::FloatRect& bounds,
+                             const std::vector<sf::FloatRect>& collisionRects) const
+{
+    return std::any_of(
+        collisionRects.begin(),
+        collisionRects.end(),
+        [&bounds](const sf::FloatRect& collider)
         {
-            sf::Vector2f pos = sprite.getPosition();
-            sprite.setPosition({pos.x, oldY});
+            return bounds.findIntersection(collider).has_value();
+        });
+}
+
+void Hedgehog::resolveHorizontalCollisions(const std::vector<sf::FloatRect>& collisionRects)
+{
+    for (const sf::FloatRect& collider : collisionRects)
+    {
+        if (!m_bounds.findIntersection(collider).has_value())
+        {
+            continue;
         }
+
+        if (m_speed.x > 0.f)
+        {
+            m_bounds.position.x = collider.position.x - m_bounds.size.x;
+        }
+        else if (m_speed.x < 0.f)
+        {
+            m_bounds.position.x = collider.position.x + collider.size.x;
+        }
+
+        m_speed.x = 0.f;
+    }
+}
+
+void Hedgehog::resolveVerticalCollisions(const std::vector<sf::FloatRect>& collisionRects)
+{
+    for (const sf::FloatRect& collider : collisionRects)
+    {
+        if (!m_bounds.findIntersection(collider).has_value())
+        {
+            continue;
+        }
+
+        if (m_speed.y > 0.f)
+        {
+            m_bounds.position.y = collider.position.y - m_bounds.size.y;
+            m_onGround = true;
+            m_jumping = false;
+        }
+        else if (m_speed.y < 0.f)
+        {
+            m_bounds.position.y = collider.position.y + collider.size.y;
+        }
+
+        m_speed.y = 0.f;
+    }
+}
+
+const sf::FloatRect* Hedgehog::findIntersectingLadder(const std::vector<sf::FloatRect>& ladderRects) const
+{
+    for (const sf::FloatRect& ladderRect : ladderRects)
+    {
+        if (m_bounds.findIntersection(ladderRect).has_value())
+        {
+            return &ladderRect;
+        }
+    }
+
+    return nullptr;
+}
+
+void Hedgehog::snapToLadder(const sf::FloatRect& ladderRect)
+{
+    m_bounds.position.x = ladderRect.position.x + (ladderRect.size.x - m_bounds.size.x) * 0.5f;
+}
+
+void Hedgehog::refreshSprite()
+{
+    if (m_framePixelSize.x > 0U && m_framePixelSize.y > 0U)
+    {
+        const float scaleX = m_size.x / static_cast<float>(m_framePixelSize.x);
+        const float scaleY = m_size.y / static_cast<float>(m_framePixelSize.y);
+        m_sprite.setScale({m_facingLeft ? -scaleX : scaleX, scaleY});
+    }
+
+    const bool blink = m_invulnerabilitySeconds > 0.f &&
+                       std::fmod(m_invulnerabilitySeconds * 12.f, 2.f) > 1.f;
+    m_sprite.setColor(blink ? sf::Color(255, 255, 255, 120) : sf::Color::White);
+
+    m_sprite.setPosition({
+        m_bounds.getCenter().x,
+        m_bounds.getCenter().y - (m_size.y - m_bounds.size.y) * 0.5f});
+}
+
+void Hedgehog::updateAnimation(const float deltaTimeSeconds, const float moveAxis)
+{
+    if (m_framePixelSize.x == 0U || m_framePixelSize.y == 0U)
+    {
+        return;
+    }
+
+    const bool isRolling = m_state != nullptr && std::string(m_state->name()) == "Rolling";
+    const bool animate = (std::abs(moveAxis) > 0.01f || isRolling) && m_onGround;
+    if (!animate)
+    {
+        m_animationTimer = 0.f;
+        m_animationFrame = 0;
     }
     else
     {
-        sf::Vector2f pos = sprite.getPosition();
-        sprite.setPosition({pos.x, oldY});
-    }
-}
-
-void Hedgehog::update(sf::Time& deltaTime,
-                      std::vector<Projectile>& projectiles,
-                      sf::Sprite& otherSprite,
-                      const std::vector<std::vector<bool>>& otherMask)
-{
-    float dt = deltaTime.asSeconds();
-
-    sf::Vector2f oldPos = sprite.getPosition();
-    sprite.move({0, 1});
-    bool groundCollision = isCollision(otherSprite) && pixelPerfectCollision(otherSprite, otherMask);
-    sprite.setPosition(oldPos);
-    onGround = groundCollision;
-    jumping = !onGround;
-
-    movement = {0,0};
-    running = false;
-
-    // Горизонтальное движение
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Left))
-    {
-        sprite.setScale({0.5,0.5});
-        movement.x -= 1;
-        run();
-    }
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Right))
-    {
-        sprite.setScale({-0.5,0.5});
-        movement.x += 1;
-        run();
+        m_animationTimer += deltaTimeSeconds;
+        const float frameDuration = isRolling ? 0.12f : 0.18f;
+        if (m_animationTimer >= frameDuration)
+        {
+            m_animationTimer = 0.f;
+            m_animationFrame = (m_animationFrame + 1) % 2;
+        }
     }
 
-    // Горизонтальная скорость
-    speed.x = movement.x * speedRun;
-
-    // Прыжок
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && onGround)
-    {
-        speed.y = -jump_force;
-        jumping = true;
-        onGround = false;
-    }
-
-    // Гравитация всегда действует
-    if (!onGround)
-        speed.y += gravity * dt;
-
-    // Выстрелы
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F) &&
-        shootCooldown.getElapsedTime().asSeconds() > shootInterval)
-    {
-        shoot(projectiles);
-        shootCooldown.restart();
-    }
-
-    // Перемещение по X и разрешение горизонтальной коллизии
-    float oldX = sprite.getPosition().x;
-    sprite.move({speed.x * dt, 0.f});
-
-    if(isCollision(otherSprite) && pixelPerfectCollision(otherSprite, otherMask))
-    {
-        resolveHorizontalCollision(otherSprite, otherMask, oldX);
-    }
-
-    // Перемещение по Y и разрешение вертикальной коллизии
-    float oldY = sprite.getPosition().y;
-    sprite.move({0.f, speed.y * dt});
-
-    if(isCollision(otherSprite) && pixelPerfectCollision(otherSprite, otherMask))
-    {
-        resolveVerticalCollision(otherSprite, otherMask, oldY);
-    }
-}
-
-void Hedgehog::draw(sf::RenderWindow& window)
-{
-    window.draw(sprite);
-}
-
-bool Hedgehog::wasClicked() const
-{
-    return isPressed;
+    const int frameY = m_animationFrame * static_cast<int>(m_framePixelSize.y);
+    m_sprite.setTextureRect(
+        sf::IntRect({0, frameY}, {static_cast<int>(m_framePixelSize.x), static_cast<int>(m_framePixelSize.y)}));
 }

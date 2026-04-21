@@ -1,18 +1,23 @@
 #ifndef PROJECTILE_H
 #define PROJECTILE_H
 #include <SFML/Graphics.hpp>
+#include <optional>
+#include <vector>
 
-class Projectile {
+class Projectile
+{
 private:
-    static sf::Texture texture;
-    sf::Sprite sprite;
-    sf::Vector2f speed;
+    static std::vector<sf::Texture> textures;
+    std::optional<sf::Sprite> sprite;
+    sf::Vector2f velocity;
     bool active;
+
+    static void ensureTexturesLoaded();
 
 public:
     Projectile(sf::Vector2f position, float directionX);
     void update(float dt);
-    void draw(sf::RenderWindow& window);
+    void draw(sf::RenderTarget& target) const;
     bool isActive() const;
 };
 
