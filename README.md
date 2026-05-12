@@ -1,4 +1,11 @@
-# Простая игра про ёжика
+# Простая игра про ёжика 
+```
+Проект в разработке
+```
+
+![C++](https://img.shields.io/badge/C++-17-blue.svg)
+![CMake](https://img.shields.io/badge/CMake-3.16+-brightgreen.svg) <!-- ![License](https://img.shields.io/badge/license-MIT-yellow.svg) добавить лицензию, когда будет рабочий прототип-->
+![Stage](https://img.shields.io/badge/stage-Development-red.svg)
 
 Учебный проект на C++17 и SFML 3.0.2.  
 
