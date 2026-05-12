@@ -6,10 +6,47 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-set(SFML_DIR "C:/Users/ivanb/Downloads/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit/SFML-3.0.2")
-set(SFML_INCLUDE_DIR "${SFML_DIR}/include")
-set(SFML_LIB_DIR "${SFML_DIR}/lib")
-set(SFML_BIN_DIR "${SFML_DIR}/bin")
+set(SFML_ROOT "C:/SFML-3.0.2" CACHE PATH "Path to the SFML 3.0.2 root directory")
+set(SFML_INCLUDE_DIR "${SFML_ROOT}/include")
+set(SFML_LIB_DIR "${SFML_ROOT}/lib")
+set(SFML_BIN_DIR "${SFML_ROOT}/bin")
+
+if(NOT EXISTS "${SFML_INCLUDE_DIR}/SFML/Graphics.hpp" OR
+   NOT EXISTS "${SFML_LIB_DIR}/libsfml-graphics.a" OR
+   NOT EXISTS "${SFML_BIN_DIR}/sfml-graphics-3.dll")
+    message(FATAL_ERROR
+        "SFML 3.0.2 was not found in '${SFML_ROOT}'. "
+        "Install SFML or pass its root directory with -DSFML_ROOT=C:/path/to/SFML-3.0.2")
+endif()
+
+if(WIN32 AND MINGW)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    set(MINGW_LIBSTDCXX_DLL "${MINGW_BIN_DIR}/libstdc++-6.dll")
+
+    if(EXISTS "${MINGW_LIBSTDCXX_DLL}")
+        file(STRINGS "${SFML_BIN_DIR}/sfml-system-3.dll" SFML_SYSTEM_CRT_HINTS
+             REGEX "api-ms-win-crt|ucrtbase|msvcrt\\.dll")
+        file(STRINGS "${MINGW_LIBSTDCXX_DLL}" MINGW_LIBSTDCXX_CRT_HINTS
+             REGEX "api-ms-win-crt|ucrtbase|msvcrt\\.dll")
+
+        string(FIND "${SFML_SYSTEM_CRT_HINTS}" "api-ms-win-crt" SFML_UCRT_API_INDEX)
+        string(FIND "${SFML_SYSTEM_CRT_HINTS}" "ucrtbase" SFML_UCRTBASE_INDEX)
+        string(FIND "${MINGW_LIBSTDCXX_CRT_HINTS}" "api-ms-win-crt" MINGW_UCRT_API_INDEX)
+        string(FIND "${MINGW_LIBSTDCXX_CRT_HINTS}" "ucrtbase" MINGW_UCRTBASE_INDEX)
+
+        if((NOT SFML_UCRT_API_INDEX EQUAL -1 OR NOT SFML_UCRTBASE_INDEX EQUAL -1) AND
+           MINGW_UCRT_API_INDEX EQUAL -1 AND MINGW_UCRTBASE_INDEX EQUAL -1)
+            message(FATAL_ERROR
+                "The selected SFML package uses UCRT, but the selected MinGW libstdc++ does not. "
+                "This can build successfully and then fail at startup with 'entry point not found'. "
+                "Use the WinLibs UCRT compiler or pass it explicitly, for example "
+                "-DCMAKE_C_COMPILER=C:/mingw64/bin/gcc.exe "
+                "-DCMAKE_CXX_COMPILER=C:/mingw64/bin/g++.exe. "
+                "Detected libstdc++: ${MINGW_LIBSTDCXX_DLL}")
+        endif()
+    endif()
+endif()
+
 set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(tinyxml2_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 
@@ -17,6 +54,8 @@ FetchContent_Declare(
     tinyxml2
     URL https://github.com/leethomason/tinyxml2/archive/refs/tags/11.0.0.zip
     URL_HASH SHA256=1C35B8D8A586125D5E43380FD2137ABBFDE645183ED1641F86C815359320412F
+    # Winlibs CMake may miss the Windows CA store; URL_HASH still verifies the archive.
+    TLS_VERIFY FALSE
     DOWNLOAD_EXTRACT_TIMESTAMP FALSE
 )
 FetchContent_MakeAvailable(tinyxml2)
@@ -42,7 +81,7 @@ target_link_libraries(Spike_game PRIVATE
 )
 
 # ---------- Copy runtime files ----------
-get_filename_component(MINGW_BIN_DIR ${CMAKE_CXX_COMPILER} DIRECTORY)
+get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
 
 add_custom_command(TARGET Spike_game POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
