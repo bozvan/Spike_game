@@ -34,10 +34,14 @@ void Projectile::ensureTexturesLoaded()
     }
 }
 
-Projectile::Projectile(sf::Vector2f position, float directionX) :
-    active(true),
-    velocity(directionX * 640.f, 0.f)
+Projectile::Projectile() = default;
+
+void Projectile::activate(const sf::Vector2f position, const float directionX)
 {
+    sprite.reset();
+    active = true;
+    velocity = {directionX * 640.f, 0.f};
+
     ensureTexturesLoaded();
 
     if (textures.empty())
@@ -64,6 +68,11 @@ Projectile::Projectile(sf::Vector2f position, float directionX) :
 
 void Projectile::update(float dt)
 {
+    if (!active)
+    {
+        return;
+    }
+
     if (!sprite.has_value())
     {
         active = false;
@@ -75,7 +84,7 @@ void Projectile::update(float dt)
     if (sprite->getPosition().x < -100 || sprite->getPosition().x > 2500 ||
         sprite->getPosition().y < -100 || sprite->getPosition().y > 1500)
     {
-        active = false;
+        deactivate();
     }
 }
 
@@ -105,5 +114,6 @@ sf::FloatRect Projectile::getBounds() const
 void Projectile::deactivate()
 {
     active = false;
+    sprite.reset();
 }
 

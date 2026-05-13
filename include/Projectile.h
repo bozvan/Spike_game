@@ -4,18 +4,23 @@
 #include <optional>
 #include <vector>
 
+class ProjectilePool;
+
 class Projectile
 {
+    friend class ProjectilePool;
+
 private:
     static std::vector<sf::Texture> textures;
     std::optional<sf::Sprite> sprite;
-    sf::Vector2f velocity;
-    bool active;
+    sf::Vector2f velocity{};
+    bool active{false};
 
     static void ensureTexturesLoaded();
+    void activate(sf::Vector2f position, float directionX);
 
 public:
-    Projectile(sf::Vector2f position, float directionX);
+    Projectile();
     void update(float dt);
     void draw(sf::RenderTarget& target) const;
     [[nodiscard]] bool isActive() const;
@@ -23,4 +28,4 @@ public:
     void deactivate();
 };
 
-#endif // PROJECTILE_H
+#endif
