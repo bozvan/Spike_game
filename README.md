@@ -2,47 +2,102 @@
 
 Учебный платформер на C++17 и SFML 3.0.2.
 
-![C++](https://img.shields.io/badge/C++-17-blue.svg)
-![CMake](https://img.shields.io/badge/CMake-3.16+-brightgreen.svg)
-![Stage](https://img.shields.io/badge/stage-Development-red.svg)
+C++
+CMake
+Stage
 
-## Быстрый запуск
+## Быстрый запуск (Windows)
 
 Нужны **CMake**, **MinGW GCC 14.2 UCRT** и **SFML 3.0.2** под тот же компилятор (список ссылок — в разделе «Что нужно установить с нуля» ниже). Первая конфигурация скачает `tinyxml2` из интернета.
 
-1. Откройте PowerShell в папке **`Spike_game`** (рядом с `CMakeLists.txt`).
+**Сборка на Ubuntu / Linux** — в разделе «Ubuntu и другие Linux» ниже на этой странице.
+
+1. Откройте PowerShell в папке `**Spike_game`** (рядом с `CMakeLists.txt`).
 2. Подставьте свой путь к SFML в `SFML_ROOT` (часто `C:\SFML-3.0.2` после распаковки архива с сайта SFML).
-3. Выполните конфигурацию, сборку и запуск из **той же папки**, куда положит exe CMake (рядом скопируются `assets` и DLL):
+3. Укажите `**cmake**`: если команда `cmake` не находится (часто после установки с сайта), задайте полный путь к exe, например `C:\Program Files\CMake\bin\cmake.exe`, или добавьте эту папку в переменную среды `PATH` и перезапустите терминал.
+4. Выполните конфигурацию, сборку и запуск из **той же папки**, куда положит exe CMake (рядом скопируются `assets` и DLL). В начале каждого блока задайте `$CMAKE`: полный путь к `cmake.exe` (часто `C:\Program Files\CMake\bin\cmake.exe`) или строку `cmake`, если CMake уже в `PATH`.
 
 **Вариант A — MSYS2 UCRT64 (если уже стоит `C:\msys64\ucrt64`) и MinGW Makefiles:**
 
 ```powershell
 cd путь\к\Spike_game
+$CMAKE = "C:\Program Files\CMake\bin\cmake.exe"   # при необходимости
 $SFML_ROOT = "C:\SFML-3.0.2"   # или путь к распакованному SFML-3.0.2-...-mingw-64-bit
-cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug `
+& $CMAKE -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug `
   -DCMAKE_C_COMPILER="C:/msys64/ucrt64/bin/gcc.exe" `
   -DCMAKE_CXX_COMPILER="C:/msys64/ucrt64/bin/g++.exe" `
   -DSFML_ROOT="$SFML_ROOT"
-cmake --build build
+& $CMAKE --build build
 Set-Location build
 .\Spike_game.exe
 ```
 
-**Вариант B — WinLibs MinGW + Ninja + CMake из PATH** (пути к `cmake`/`ninja`/`gcc` должны быть в `PATH`):
+**Вариант B — WinLibs MinGW без Ninja (MinGW Makefiles)** — не нужен `ninja.exe`, только `gcc`/`g++` из WinLibs. Подставьте папку `bin` вашего MinGW (где лежат `gcc.exe` и `mingw32-make.exe`):
 
 ```powershell
 cd путь\к\Spike_game
-cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug `
-  -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ `
-  -DSFML_ROOT="C:\SFML-3.0.2"
-cmake --build build
+$CMAKE = "C:\Program Files\CMake\bin\cmake.exe"   # при необходимости
+$MINGW  = "C:/tools/mingw64"   # пример: корень WinLibs, внутри bin\gcc.exe
+$SFML_ROOT = "C:\SFML-3.0.2"
+& $CMAKE -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug `
+  -DCMAKE_C_COMPILER="$MINGW/bin/gcc.exe" `
+  -DCMAKE_CXX_COMPILER="$MINGW/bin/g++.exe" `
+  -DSFML_ROOT="$SFML_ROOT"
+& $CMAKE --build build
 Set-Location build
 .\Spike_game.exe
 ```
 
-Если `cmake` не находится, установите [CMake](https://cmake.org/download/) или используйте Qt Creator и откройте эту папку как CMake-проект.
+**Вариант C — Ninja** (нужен установленный **Ninja** и путь к нему в `PATH`, либо укажите `-DCMAKE_MAKE_PROGRAM` на `ninja.exe`, например `C:/Qt/Tools/Ninja/ninja.exe`). Если до этого уже запускали конфигурацию с ошибкой, удалите папку `**build`** и начните снова.
+
+С Ninja в `PATH`:
+
+```powershell
+cd путь\к\Spike_game
+$CMAKE = "C:\Program Files\CMake\bin\cmake.exe"
+Remove-Item -Recurse -Force build -ErrorAction SilentlyContinue
+& $CMAKE -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug `
+  -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ `
+  -DSFML_ROOT="C:\SFML-3.0.2"
+& $CMAKE --build build
+Set-Location build
+.\Spike_game.exe
+```
+
+Если Ninja не в `PATH`, добавьте в команду конфигурации, перед `-DSFML_ROOT`:
+
+`-DCMAKE_MAKE_PROGRAM="C:/Qt/Tools/Ninja/ninja.exe"`
+
+Если CMake ещё не установлен, скачайте установщик с [cmake.org/download](https://cmake.org/download/) (галочка *Add CMake to the system PATH* решает проблему для новых терминалов) или откройте проект в **Qt Creator**.
 
 Готовый блок с явными путями к Qt CMake/Ninja и WinLibs — в разделе «Сборка из PowerShell (Ручной способ)» ниже.
+
+## Ubuntu и другие Linux
+
+Ubuntu (и в целом на Linux) проект можно **собрать и запустить**. В `CMakeLists.txt` для не-Windows используется `**find_package(SFML 3 ...)*`* и копируется только каталог `**assets**` (без DLL).
+
+Нужны **компилятор с C++17** и установленный **SFML 3** так, чтобы CMake находил пакет (часто через `CMAKE_PREFIX_PATH` к каталогу установки SFML).
+
+Типичные зависимости для сборки графики и SFML:
+
+```bash
+sudo apt update
+sudo apt install -y build-essential cmake pkg-config \
+  libfreetype6-dev libgl1-mesa-dev libx11-dev libxrandr-dev \
+  libxcursor-dev libxi-dev libopenal-dev libflac-dev libvorbis-dev libogg-dev libudev-dev
+```
+
+**Важно:** в репозиториях Ubuntu часто до сих пор **SFML 2.x**. Этому проекту нужна **SFML 3**. Если `apt` не даёт версию 3, соберите SFML с [официального репозитория](https://github.com/SFML/SFML), установите в префикс (например `/usr/local`) и укажите путь при конфигурации:
+
+```bash
+export CMAKE_PREFIX_PATH="/usr/local"   # каталог, куда `cmake --install` поставил SFML 3
+cd Spike_game
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake --build build
+./build/Spike_game
+```
+
+Запускайте `**./build/Spike_game**` из каталога `**Spike_game**`, либо перейдите в `build` и запустите `./Spike_game` — рядом с бинарником уже должна лежать скопированная папка `assets`.
 
 ## Сборка из PowerShell (Ручной способ)
 
@@ -81,33 +136,15 @@ if (Test-Path CMakeCache.txt) { Remove-Item CMakeCache.txt -Force }
 ## Что нужно установить с нуля
 
 1. **MinGW-w64 UCRT GCC 14.2.0**
-
-   Скачайте архив:
-   <https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64ucrt-12.0.0-r2.7z>
-
+  Скачайте архив:
+   [https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64ucrt-12.0.0-r2.7z](https://github.com/brechtsanders/winlibs_mingw/releases/download/14.2.0posix-19.1.1-12.0.0-ucrt-r2/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64ucrt-12.0.0-r2.7z)
    Нужна именно UCRT-версия. MSVCRT-версия может собрать проект, но игра потом не запустится из-за несовместимых DLL.
-
 2. **SFML 3.0.2 для GCC 14.2.0 MinGW 64-bit**
-
-   Скачайте архив:
-   <https://www.sfml-dev.org/files/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit.zip>
-
+  Скачайте архив:
+   [https://www.sfml-dev.org/files/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit.zip](https://www.sfml-dev.org/files/SFML-3.0.2-windows-gcc-14.2.0-mingw-64-bit.zip)
    Распакуйте так, чтобы были папки:
-
-   ```text
-   C:\SFML-3.0.2\bin
-   C:\SFML-3.0.2\include
-   C:\SFML-3.0.2\lib
-   ```
-
 3. **Qt Creator или CMake + Ninja**
-
-   В Qt Creator уже есть удобная сборка через CMake и Ninja. Для ручной сборки выше используются:
-
-   ```text
-   C:\Qt\Tools\CMake_64\bin\cmake.exe
-   C:\Qt\Tools\Ninja\ninja.exe
-   ```
+  В Qt Creator уже есть удобная сборка через CMake и Ninja. Для ручной сборки выше используются:
 
 ## Проверка правильного MinGW
 
@@ -143,20 +180,24 @@ libwinpthread-1.dll
 
 ## Управление
 
-| Клавиша | Действие |
-| --- | --- |
-| `Left` / `Right` | Движение влево и вправо |
-| `Space` | Прыжок |
-| `Up` / `Down` | Подъем и спуск по лестнице |
-| `Left Ctrl` | Перекат |
-| `F` | Выстрел |
-| `E` | Взаимодействие с дверями и переходами |
+
+| Клавиша          | Действие                              |
+| ---------------- | ------------------------------------- |
+| `Left` / `Right` | Движение влево и вправо               |
+| `Space`          | Прыжок                                |
+| `Up` / `Down`    | Подъем и спуск по лестнице            |
+| `Left Ctrl`      | Перекат                               |
+| `F`              | Выстрел                               |
+| `E`              | Взаимодействие с дверями и переходами |
+
 
 Цель игры: собрать ключи и цветные части, открывать двери и добраться до финального перехода.
 
 ## Частые проблемы
 
+- `Имя "cmake" не распознано` / `cmake` не найден: CMake не в `PATH`. Задайте `$CMAKE = "C:\Program Files\CMake\bin\cmake.exe"` и вызывайте `& $CMAKE ...`, либо добавьте эту папку в `PATH` и откройте новый терминал. См. раздел «Быстрый запуск».
 - `Точка входа в процедуру ... не найдена` в `sfml-system-3.dll`: проект собран MSVCRT-компилятором. Выберите UCRT MinGW GCC 14.2.0 и пересоберите.
 - `SFML 3.0.2 was not found`: проверьте путь `C:\SFML-3.0.2`.
-- `ninja.exe` не найден: проверьте путь `C:\Qt\Tools\Ninja\ninja.exe`.
+- `Could not find a package configuration file` / `SFML 3` не найден (Linux): установите **SFML 3** и задайте `CMAKE_PREFIX_PATH` на префикс установки, см. раздел «Ubuntu и другие Linux».
 - Первая сборка требует интернет, потому что CMake скачивает `tinyxml2`.
+

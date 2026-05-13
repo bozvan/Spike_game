@@ -6,17 +6,21 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include(FetchContent)
 
-set(SFML_ROOT "C:/SFML-3.0.2" CACHE PATH "Path to the SFML 3.0.2 root directory")
-set(SFML_INCLUDE_DIR "${SFML_ROOT}/include")
-set(SFML_LIB_DIR "${SFML_ROOT}/lib")
-set(SFML_BIN_DIR "${SFML_ROOT}/bin")
+if(WIN32)
+    set(SFML_ROOT "C:/SFML-3.0.2" CACHE PATH "Path to the SFML 3.0.2 root directory (Windows)")
+    set(SFML_INCLUDE_DIR "${SFML_ROOT}/include")
+    set(SFML_LIB_DIR "${SFML_ROOT}/lib")
+    set(SFML_BIN_DIR "${SFML_ROOT}/bin")
 
-if(NOT EXISTS "${SFML_INCLUDE_DIR}/SFML/Graphics.hpp" OR
-   NOT EXISTS "${SFML_LIB_DIR}/libsfml-graphics.a" OR
-   NOT EXISTS "${SFML_BIN_DIR}/sfml-graphics-3.dll")
-    message(FATAL_ERROR
-        "SFML 3.0.2 was not found in '${SFML_ROOT}'. "
-        "Install SFML or pass its root directory with -DSFML_ROOT=C:/path/to/SFML-3.0.2")
+    if(NOT EXISTS "${SFML_INCLUDE_DIR}/SFML/Graphics.hpp" OR
+       NOT EXISTS "${SFML_LIB_DIR}/libsfml-graphics.a" OR
+       NOT EXISTS "${SFML_BIN_DIR}/sfml-graphics-3.dll")
+        message(FATAL_ERROR
+            "SFML 3.0.2 was not found in '${SFML_ROOT}'. "
+            "Install SFML or pass its root directory with -DSFML_ROOT=C:/path/to/SFML-3.0.2")
+    endif()
+else()
+    find_package(SFML 3 COMPONENTS Graphics Window System REQUIRED)
 endif()
 
 if(WIN32 AND MINGW)
@@ -69,43 +73,60 @@ add_executable(Spike_game ${SOURCES} ${HEADERS})
 
 target_include_directories(Spike_game PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${SFML_INCLUDE_DIR}
 )
 
-target_link_directories(Spike_game PRIVATE ${SFML_LIB_DIR})
-target_link_libraries(Spike_game PRIVATE
-    tinyxml2
-    sfml-graphics
-    sfml-window
-    sfml-system
-)
+if(WIN32)
+    target_include_directories(Spike_game PRIVATE ${SFML_INCLUDE_DIR})
+    target_link_directories(Spike_game PRIVATE ${SFML_LIB_DIR})
+    target_link_libraries(Spike_game PRIVATE
+        tinyxml2
+        sfml-graphics
+        sfml-window
+        sfml-system
+    )
+else()
+    target_link_libraries(Spike_game PRIVATE
+        tinyxml2
+        SFML::Graphics
+        SFML::Window
+        SFML::System
+    )
+endif()
 
 # ---------- Copy runtime files ----------
-get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+if(WIN32)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
 
-add_custom_command(TARGET Spike_game POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${CMAKE_CURRENT_SOURCE_DIR}/assets"
-        "$<TARGET_FILE_DIR:Spike_game>/assets"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${SFML_BIN_DIR}/sfml-graphics-3.dll"
-        "$<TARGET_FILE_DIR:Spike_game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${SFML_BIN_DIR}/sfml-window-3.dll"
-        "$<TARGET_FILE_DIR:Spike_game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${SFML_BIN_DIR}/sfml-system-3.dll"
-        "$<TARGET_FILE_DIR:Spike_game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
-        "$<TARGET_FILE_DIR:Spike_game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${MINGW_BIN_DIR}/libstdc++-6.dll"
-        "$<TARGET_FILE_DIR:Spike_game>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${MINGW_BIN_DIR}/libwinpthread-1.dll"
-        "$<TARGET_FILE_DIR:Spike_game>"
-)
+    add_custom_command(TARGET Spike_game POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:Spike_game>/assets"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${SFML_BIN_DIR}/sfml-graphics-3.dll"
+            "$<TARGET_FILE_DIR:Spike_game>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${SFML_BIN_DIR}/sfml-window-3.dll"
+            "$<TARGET_FILE_DIR:Spike_game>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${SFML_BIN_DIR}/sfml-system-3.dll"
+            "$<TARGET_FILE_DIR:Spike_game>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINGW_BIN_DIR}/libgcc_s_seh-1.dll"
+            "$<TARGET_FILE_DIR:Spike_game>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINGW_BIN_DIR}/libstdc++-6.dll"
+            "$<TARGET_FILE_DIR:Spike_game>"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${MINGW_BIN_DIR}/libwinpthread-1.dll"
+            "$<TARGET_FILE_DIR:Spike_game>"
+    )
+else()
+    add_custom_command(TARGET Spike_game POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:Spike_game>/assets"
+    )
+endif()
 
 message(STATUS "C++ compiler: ${CMAKE_CXX_COMPILER}")
 message(STATUS "Compiler ID: ${CMAKE_CXX_COMPILER_ID}")
