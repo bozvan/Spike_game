@@ -15,7 +15,7 @@
 
 class Hedgehog;
 class ProgressModel;
-class Projectile;
+class ProjectilePool;
 
 class LevelManager : public sf::Drawable
 {
@@ -35,7 +35,7 @@ public:
     void update(float deltaTimeSeconds,
                 Hedgehog& player,
                 ProgressModel& progress,
-                std::vector<Projectile>& projectiles,
+                ProjectilePool& projectiles,
                 bool interactRequested);
 
     [[nodiscard]] const std::string& getCurrentLevelId() const;

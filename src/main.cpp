@@ -4,13 +4,12 @@
 #include "HudOverlay.hpp"
 #include "LevelManager.hpp"
 #include "ProgressModel.hpp"
-#include "Projectile.h"
+#include "ProjectilePool.hpp"
 
 #include <algorithm>
 #include <array>
 #include <iostream>
 #include <optional>
-#include <vector>
 
 namespace
 {
@@ -150,7 +149,7 @@ int main()
 
     Hedgehog player("assets/textures/Hedgehog.png", {64.f, 64.f});
     player.respawn(levelManager.getSpawnPosition());
-    std::vector<Projectile> projectiles;
+    ProjectilePool projectiles(48);
     bool victoryAchieved = false;
 
     std::cout << "Objective: collect every key and part, then return to the golden mega door in the first room.\n";
@@ -208,16 +207,6 @@ int main()
                 projectile.update(deltaTimeSeconds);
             }
 
-            projectiles.erase(
-                std::remove_if(
-                    projectiles.begin(),
-                    projectiles.end(),
-                    [](const Projectile& projectile)
-                    {
-                        return !projectile.isActive();
-                    }),
-                projectiles.end());
-
             levelManager.update(deltaTimeSeconds, player, progress, projectiles, interactRequested);
 
             if (const std::optional<LevelTransitionRequest> transition = levelManager.consumePendingTransition())
@@ -225,14 +214,14 @@ int main()
                 if (transition->targetLevelId == kVictoryLevelId)
                 {
                     victoryAchieved = true;
-                    projectiles.clear();
+                    projectiles.deactivateAll();
                     window.setTitle(kVictoryWindowTitle);
                     std::cout << "Victory! All keys and parts collected.\n";
                 }
                 else if (levelManager.loadLevel(transition->targetLevelId, transition->targetSpawnName, progress))
                 {
                     player.respawn(levelManager.getSpawnPosition());
-                    projectiles.clear();
+                    projectiles.deactivateAll();
                 }
             }
 

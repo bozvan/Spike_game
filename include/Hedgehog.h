@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-class Projectile;
+class ProjectilePool;
 
 class Hedgehog
 {
@@ -22,7 +22,7 @@ public:
                 const std::vector<sf::FloatRect>& ladderRects);
     void run();
     void jump();
-    void shoot(std::vector<Projectile>& projectiles);
+    void shoot(ProjectilePool& projectiles);
     void draw(sf::RenderTarget& target) const;
 
     void setPosition(sf::Vector2f position);

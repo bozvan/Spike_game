@@ -1,6 +1,6 @@
 #include "Hedgehog.h"
 
-#include "Projectile.h"
+#include "ProjectilePool.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -86,14 +86,14 @@ void Hedgehog::jump()
     m_onGround = false;
 }
 
-void Hedgehog::shoot(std::vector<Projectile>& projectiles)
+void Hedgehog::shoot(ProjectilePool& projectiles)
 {
     if (m_shootCooldown.getElapsedTime().asSeconds() < m_shootInterval)
     {
         return;
     }
 
-    projectiles.emplace_back(
+    (void)projectiles.trySpawn(
         sf::Vector2f{
             m_bounds.getCenter().x + (m_facingLeft ? -1.f : 1.f) * (m_bounds.size.x * 0.5f + 10.f),
             m_bounds.position.y + 22.f},

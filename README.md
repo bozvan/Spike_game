@@ -6,6 +6,44 @@
 ![CMake](https://img.shields.io/badge/CMake-3.16+-brightgreen.svg)
 ![Stage](https://img.shields.io/badge/stage-Development-red.svg)
 
+## Быстрый запуск
+
+Нужны **CMake**, **MinGW GCC 14.2 UCRT** и **SFML 3.0.2** под тот же компилятор (список ссылок — в разделе «Что нужно установить с нуля» ниже). Первая конфигурация скачает `tinyxml2` из интернета.
+
+1. Откройте PowerShell в папке **`Spike_game`** (рядом с `CMakeLists.txt`).
+2. Подставьте свой путь к SFML в `SFML_ROOT` (часто `C:\SFML-3.0.2` после распаковки архива с сайта SFML).
+3. Выполните конфигурацию, сборку и запуск из **той же папки**, куда положит exe CMake (рядом скопируются `assets` и DLL):
+
+**Вариант A — MSYS2 UCRT64 (если уже стоит `C:\msys64\ucrt64`) и MinGW Makefiles:**
+
+```powershell
+cd путь\к\Spike_game
+$SFML_ROOT = "C:\SFML-3.0.2"   # или путь к распакованному SFML-3.0.2-...-mingw-64-bit
+cmake -S . -B build -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Debug `
+  -DCMAKE_C_COMPILER="C:/msys64/ucrt64/bin/gcc.exe" `
+  -DCMAKE_CXX_COMPILER="C:/msys64/ucrt64/bin/g++.exe" `
+  -DSFML_ROOT="$SFML_ROOT"
+cmake --build build
+Set-Location build
+.\Spike_game.exe
+```
+
+**Вариант B — WinLibs MinGW + Ninja + CMake из PATH** (пути к `cmake`/`ninja`/`gcc` должны быть в `PATH`):
+
+```powershell
+cd путь\к\Spike_game
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug `
+  -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ `
+  -DSFML_ROOT="C:\SFML-3.0.2"
+cmake --build build
+Set-Location build
+.\Spike_game.exe
+```
+
+Если `cmake` не находится, установите [CMake](https://cmake.org/download/) или используйте Qt Creator и откройте эту папку как CMake-проект.
+
+Готовый блок с явными путями к Qt CMake/Ninja и WinLibs — в разделе «Сборка из PowerShell (Ручной способ)» ниже.
+
 ## Сборка из PowerShell (Ручной способ)
 
 Для ручной сборки отредактируйте переменные в начале блока кода и вставьте его в терминал:
@@ -76,7 +114,7 @@ if (Test-Path CMakeCache.txt) { Remove-Item CMakeCache.txt -Force }
 В PowerShell:
 
 ```powershell
-& "C:/Users/ivanb/Downloads/winlibs-x86_64-posix-seh-gcc-14.2.0-mingw-w64ucrt-12.0.0-r2/mingw64/bin/g++.exe" --version
+& "ПУТЬ_К_MINGW\bin\g++.exe" --version
 ```
 
 В первой строке должно быть:

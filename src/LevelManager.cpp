@@ -6,7 +6,7 @@
 #include "Hedgehog.h"
 #include "Interactable.hpp"
 #include "ProgressModel.hpp"
-#include "Projectile.h"
+#include "ProjectilePool.hpp"
 
 #include <algorithm>
 #include <iostream>
@@ -130,7 +130,7 @@ bool LevelManager::loadLevel(const std::string& levelId,
 void LevelManager::update(const float deltaTimeSeconds,
                           Hedgehog& player,
                           ProgressModel& progress,
-                          std::vector<Projectile>& projectiles,
+                          ProjectilePool& projectiles,
                           const bool interactRequested)
 {
     m_map.update(deltaTimeSeconds);
@@ -142,6 +142,11 @@ void LevelManager::update(const float deltaTimeSeconds,
 
     for (Projectile& projectile : projectiles)
     {
+        if (!projectile.isActive())
+        {
+            continue;
+        }
+
         for (const std::unique_ptr<Enemy>& enemy : m_enemies)
         {
             if (enemy->tryHitByProjectile(projectile))
