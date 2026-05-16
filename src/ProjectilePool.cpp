@@ -2,7 +2,7 @@
 
 ProjectilePool::ProjectilePool(const std::size_t capacity)
 {
-    m_slots.resize(capacity);
+    m_slots.resize(capacity); // выделение памяти под capacity снарядов в векторе.
 }
 
 bool ProjectilePool::trySpawn(const sf::Vector2f position, const float directionX)

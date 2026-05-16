@@ -12,20 +12,22 @@ class Projectile
 
 private:
     static std::vector<sf::Texture> textures;
-    std::optional<sf::Sprite> sprite;
-    sf::Vector2f velocity{};
-    bool active{false};
 
-    static void ensureTexturesLoaded();
-    void activate(sf::Vector2f position, float directionX);
+    std::optional<sf::Sprite> sprite;  // Sprite существует только у активных снар€дов
+    sf::Vector2f velocity{ 0, 0 };       // скорость
+    bool active{ false };                // активен ли снар€д
+
+    static void ensureTexturesLoaded();// проверка загрузки
+
+    void activate(sf::Vector2f position, float directionX); 
 
 public:
-    Projectile();
-    void update(float dt);
-    void draw(sf::RenderTarget& target) const;
-    [[nodiscard]] bool isActive() const;
-    [[nodiscard]] sf::FloatRect getBounds() const;
-    void deactivate();
+    Projectile(); // пустой снар€д неактивный при начале
+    void update(float dt); // каждый кадр дл€ каждого активного снар€да
+    void draw(sf::RenderTarget& target) const; // рисует снар€д на экране
+    [[nodiscard]] bool isActive() const; // ¬озвращает true, если снар€д сейчас в полЄте
+    [[nodiscard]] sf::FloatRect getBounds() const; // »спользуетс€ дл€ обнаружени€ столкновений
+    void deactivate(); // если вылетел за экран
 };
 
 #endif

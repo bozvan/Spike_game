@@ -8,9 +8,9 @@
 class ProjectilePool
 {
 public:
-    explicit ProjectilePool(std::size_t capacity);
+    explicit ProjectilePool(std::size_t capacity); // запрет неявного преобразования типов
 
-    [[nodiscard]] bool trySpawn(sf::Vector2f position, float directionX);
+    [[nodiscard]] bool trySpawn(sf::Vector2f position, float directionX); 
     void deactivateAll();
 
     using iterator = std::vector<Projectile>::iterator;

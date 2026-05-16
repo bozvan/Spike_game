@@ -4,7 +4,7 @@
 #include <random>
 #include "Projectile.h"
 
-std::vector<sf::Texture> Projectile::textures;
+std::vector<sf::Texture> Projectile::textures; // —татический член Ч общий дл€ всех экземпл€ров Projectile.
 
 void Projectile::ensureTexturesLoaded()
 {
@@ -38,11 +38,11 @@ Projectile::Projectile() = default;
 
 void Projectile::activate(const sf::Vector2f position, const float directionX)
 {
-    sprite.reset();
+    sprite.reset(); //  если снар€д переиспользуетс€.
     active = true;
-    velocity = {directionX * 640.f, 0.f};
+    velocity = {directionX * 640.f, 0.f}; // скорость
 
-    ensureTexturesLoaded();
+    ensureTexturesLoaded(); // гарантирует, что текстуры загружены.
 
     if (textures.empty())
     {
@@ -50,8 +50,10 @@ void Projectile::activate(const sf::Vector2f position, const float directionX)
         return;
     }
 
-    static std::mt19937 generator{std::random_device{}()};
+    static std::mt19937 generator{std::random_device{}()}; // случайный выбор текстуры
+
     std::uniform_int_distribution<std::size_t> distribution(0U, textures.size() - 1U);
+    
     const std::size_t textureIndex = distribution(generator);
 
     sprite.emplace(textures[textureIndex]);

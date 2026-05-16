@@ -78,27 +78,42 @@ PartColor parsePartColor(const MapLoader::MapObject& object)
 std::unique_ptr<Enemy> GameObjectFactory::createEnemy(const std::string& levelId,
                                                       const MapLoader::MapObject& object)
 {
-    const std::string type = toLowerCopy(object.type);
-    if (type != "bat")
+    if (object.type == "BatEnemy" || object.type == "Bat" || object.type == "bat")
     {
-        return nullptr;
+        float patrolMinX = object.getPropertyFloat("patrolMinX", object.bounds.position.x - 150);
+        float patrolMaxX = object.getPropertyFloat("patrolMaxX", object.bounds.position.x + 150);
+        float speed = object.getPropertyFloat("speed", 100.0f);
+
+        auto strategy = std::make_unique<HorizontalPatrolStrategy>(patrolMinX, patrolMaxX);
+
+        return std::make_unique<BatEnemy>(
+            object.name + "_" + std::to_string(object.id),
+            object.bounds.getCenter(),
+            sf::Vector2f(object.bounds.size.x, object.bounds.size.y),
+            std::move(strategy),
+            speed
+        );
     }
 
-    const std::string objectId = makeObjectId(levelId, object);
-    const sf::Vector2f size = {
-        object.bounds.size.x > 0.f ? object.bounds.size.x : 48.f,
-        object.bounds.size.y > 0.f ? object.bounds.size.y : 28.f};
-    const sf::Vector2f center = object.bounds.getCenter();
+    if (object.type == "Mushroom" || object.type == "mushroom" || object.type == "MushroomEnemy")
+    {
+        float patrolMinX = object.getPropertyFloat("patrolMinX", object.bounds.position.x - 100);
+        float patrolMaxX = object.getPropertyFloat("patrolMaxX", object.bounds.position.x + 100);
+        float speed = object.getPropertyFloat("speed", 40.0f);
 
-    const float patrolMinX = getFloatProperty(object, "patrolMinX", center.x - 96.f);
-    const float patrolMaxX = getFloatProperty(object, "patrolMaxX", center.x + 96.f);
-    const float speed = getFloatProperty(object, "speed", 90.f);
+        auto strategy = std::make_unique<HorizontalPatrolStrategy>(patrolMinX, patrolMaxX);
 
-    return std::make_unique<BatEnemy>(
-        objectId,
-        center,
-        size,
-        std::make_unique<HorizontalPatrolStrategy>(patrolMinX, patrolMaxX, speed));
+        return std::make_unique<MushroomEnemy>(
+            object.name + "_" + std::to_string(object.id),
+            object.bounds.getCenter(),
+            sf::Vector2f(object.bounds.size.x, object.bounds.size.y),
+            std::move(strategy),
+            speed
+        );
+    }
+
+    return nullptr;
+}
 }
 
 std::unique_ptr<Collectible> GameObjectFactory::createCollectible(const std::string& levelId,

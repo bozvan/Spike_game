@@ -7,6 +7,7 @@
 #include "Interactable.hpp"
 #include "ProgressModel.hpp"
 #include "ProjectilePool.hpp"
+#include "MushroomEnemy.hpp"
 
 #include <algorithm>
 #include <iostream>
